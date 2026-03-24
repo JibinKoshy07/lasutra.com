@@ -101,6 +101,12 @@
       width: 100%;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
     .cart-btn {
       position: relative;
       background: none;
@@ -784,6 +790,299 @@
         max-width: 100%;
       }
     }
+
+    /* Auth Modal */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .auth-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .auth-modal {
+      background: var(--primary);
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 440px;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
+
+    .auth-overlay.open .auth-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .auth-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .auth-close:hover {
+      transform: rotate(90deg);
+    }
+
+    .auth-close svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--text-secondary);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-header h2 {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: var(--text-secondary);
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 32px;
+      border-bottom: 2px solid var(--surface);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    .auth-tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .auth-tab.active {
+      color: var(--text-primary);
+    }
+
+    .auth-tab.active::after {
+      transform: scaleX(1);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-group input.error {
+      border-color: #ff4444;
+    }
+
+    .form-error {
+      color: #ff4444;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .auth-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+    }
+
+    .auth-submit:hover {
+      background: #ff5a75;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+    }
+
+    .auth-message {
+      text-align: center;
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .auth-message.success {
+      display: block;
+      background: rgba(0, 217, 165, 0.1);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .auth-message.error {
+      display: block;
+      background: rgba(255, 68, 68, 0.1);
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .user-name {
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--text-secondary);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .login-btn {
+      padding: 10px 24px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+      background: #ff5a75;
+    }
+
+    /* Protected checkout */
+    .checkout-btn.protected {
+      position: relative;
+    }
+
+    .checkout-btn.protected::after {
+      content: 'Login required';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .checkout-btn.protected:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
   </style>
 </head>
 <body>
@@ -796,14 +1095,19 @@
       <a href="#">About</a>
       <a href="#">Contact</a>
     </nav>
-    <button class="cart-btn" id="cartBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-      </svg>
-      <span class="cart-badge" id="cartBadge">0</span>
-    </button>
+    <div class="header-actions">
+      <div id="authArea">
+        <button class="login-btn" id="openAuthBtn">Login</button>
+      </div>
+      <button class="cart-btn" id="cartBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
   </header>
 
   <!-- Hero Section -->
@@ -907,6 +1211,62 @@
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
     </div>
   </aside>
+
+  <!-- Auth Modal -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-modal">
+      <button class="auth-close" id="authClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="auth-header">
+        <h2 id="authTitle">Welcome Back</h2>
+        <p id="authSubtitle">Sign in to your account</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+      
+      <!-- Login Form -->
+      <form class="auth-form active" id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="auth-submit">Sign In</button>
+        <div class="auth-message" id="loginMessage"></div>
+      </form>
+      
+      <!-- Register Form -->
+      <form class="auth-form" id="registerForm">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="registerName" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="registerEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="Create a password" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+        </div>
+        <button type="submit" class="auth-submit">Create Account</button>
+        <div class="auth-message" id="registerMessage"></div>
+      </form>
+    </div>
+  </div>
 
   <script>
     // Product Data
@@ -1082,17 +1442,260 @@
       cartOverlay.classList.toggle('open');
     }
 
+    // ============ AUTH SYSTEM ============
+    
+    // User state
+    let currentUser = null;
+    let users = []; // Store registered users in memory
+
+    // Auth DOM elements
+    const authArea = document.getElementById('authArea');
+    const openAuthBtn = document.getElementById('openAuthBtn');
+    const authOverlay = document.getElementById('authOverlay');
+    const authClose = document.getElementById('authClose');
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const loginMessage = document.getElementById('loginMessage');
+    const registerMessage = document.getElementById('registerMessage');
+
+    // Load users from localStorage
+    function loadUsers() {
+      const stored = localStorage.getItem('lasutra_users');
+      if (stored) {
+        users = JSON.parse(stored);
+      }
+    }
+
+    // Save users to localStorage
+    function saveUsers() {
+      localStorage.setItem('lasutra_users', JSON.stringify(users));
+    }
+
+    // Load current user from localStorage
+    function loadCurrentUser() {
+      const stored = localStorage.getItem('lasutra_currentUser');
+      if (stored) {
+        currentUser = JSON.parse(stored);
+        updateAuthUI();
+      }
+    }
+
+    // Save current user to localStorage
+    function saveCurrentUser() {
+      if (currentUser) {
+        localStorage.setItem('lasutra_currentUser', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('lasutra_currentUser');
+      }
+    }
+
+    // Update auth UI based on login state
+    function updateAuthUI() {
+      if (currentUser) {
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        authArea.innerHTML = `
+          <div class="user-menu">
+            <div class="user-avatar">${initials}</div>
+            <span class="user-name">${currentUser.name}</span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        `;
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        checkoutBtn.classList.remove('protected');
+      } else {
+        authArea.innerHTML = `<button class="login-btn" id="openAuthBtn">Login</button>`;
+        document.getElementById('openAuthBtn').addEventListener('click', openAuth);
+        checkoutBtn.classList.add('protected');
+      }
+    }
+
+    // Open auth modal
+    function openAuth() {
+      authOverlay.classList.add('open');
+    }
+
+    // Close auth modal
+    function closeAuth() {
+      authOverlay.classList.remove('open');
+      // Clear form messages
+      loginMessage.className = 'auth-message';
+      loginMessage.textContent = '';
+      registerMessage.className = 'auth-message';
+      registerMessage.textContent = '';
+      // Clear form fields
+      loginForm.reset();
+      registerForm.reset();
+    }
+
+    // Switch between login and register tabs
+    function switchAuthTab(tab) {
+      authTabs.forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      
+      loginForm.classList.toggle('active', tab === 'login');
+      registerForm.classList.toggle('active', tab === 'register');
+      
+      if (tab === 'login') {
+        authTitle.textContent = 'Welcome Back';
+        authSubtitle.textContent = 'Sign in to your account';
+      } else {
+        authTitle.textContent = 'Create Account';
+        authSubtitle.textContent = 'Join us for exclusive deals';
+      }
+      
+      // Clear messages
+      loginMessage.className = 'auth-message';
+      loginMessage.textContent = '';
+      registerMessage.className = 'auth-message';
+      registerMessage.textContent = '';
+    }
+
+    // Register new user
+    function register(name, email, password) {
+      loadUsers();
+      
+      // Check if email already exists
+      const existingUser = users.find(u => u.email === email);
+      if (existingUser) {
+        return { success: false, message: 'Email already registered' };
+      }
+      
+      // Create new user
+      const newUser = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        password: password // In production, this should be hashed
+      };
+      
+      users.push(newUser);
+      saveUsers();
+      
+      // Auto login after registration
+      currentUser = { id: newUser.id, name: newUser.name, email: newUser.email };
+      saveCurrentUser();
+      updateAuthUI();
+      
+      return { success: true, message: 'Account created successfully!' };
+    }
+
+    // Login user
+    function login(email, password) {
+      loadUsers();
+      
+      const user = users.find(u => u.email === email && u.password === password);
+      
+      if (user) {
+        currentUser = { id: user.id, name: user.name, email: user.email };
+        saveCurrentUser();
+        updateAuthUI();
+        return { success: true, message: 'Login successful!' };
+      }
+      
+      return { success: false, message: 'Invalid email or password' };
+    }
+
+    // Logout user
+    function logout() {
+      currentUser = null;
+      saveCurrentUser();
+      updateAuthUI();
+      closeCart();
+      alert('You have been logged out');
+    }
+
+    // Event listeners for auth
+    openAuthBtn.addEventListener('click', openAuth);
+    authClose.addEventListener('click', closeAuth);
+    authOverlay.addEventListener('click', (e) => {
+      if (e.target === authOverlay) closeAuth();
+    });
+
+    authTabs.forEach(tab => {
+      tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+    });
+
+    // Login form submit
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      const result = login(email, password);
+      
+      if (result.success) {
+        loginMessage.className = 'auth-message success';
+        loginMessage.textContent = result.message;
+        setTimeout(() => {
+          closeAuth();
+        }, 1000);
+      } else {
+        loginMessage.className = 'auth-message error';
+        loginMessage.textContent = result.message;
+      }
+    });
+
+    // Register form submit
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirmPassword').value;
+      
+      // Validate password match
+      if (password !== confirmPassword) {
+        registerMessage.className = 'auth-message error';
+        registerMessage.textContent = 'Passwords do not match';
+        return;
+      }
+      
+      // Validate password length
+      if (password.length < 6) {
+        registerMessage.className = 'auth-message error';
+        registerMessage.textContent = 'Password must be at least 6 characters';
+        return;
+      }
+      
+      const result = register(name, email, password);
+      
+      if (result.success) {
+        registerMessage.className = 'auth-message success';
+        registerMessage.textContent = result.message;
+        setTimeout(() => {
+          closeAuth();
+        }, 1000);
+      } else {
+        registerMessage.className = 'auth-message error';
+        registerMessage.textContent = result.message;
+      }
+    });
+
+    // ============ END AUTH SYSTEM ============
+
     // Event Listeners
     cartBtn.addEventListener('click', toggleCart);
     closeCart.addEventListener('click', toggleCart);
     cartOverlay.addEventListener('click', toggleCart);
     checkoutBtn.addEventListener('click', () => {
       if (cart.length > 0) {
-        alert('Thank you for your order! This is a demo checkout.');
+        if (currentUser) {
+          alert(`Thank you for your order, ${currentUser.name}! Your items will be shipped soon.`);
+          cart = [];
+          updateCart();
+          toggleCart();
+        } else {
+          openAuth();
+        }
       }
     });
 
     // Initialize
+    loadUsers();
+    loadCurrentUser();
     renderProducts();
     updateCart();
   </script>
