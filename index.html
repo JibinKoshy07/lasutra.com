@@ -1442,11 +1442,13 @@
       cartOverlay.classList.toggle('open');
     }
 
-    // ============ AUTH SYSTEM ============
+    // ============ AUTH SYSTEM (Node.js + PostgreSQL) ============
+    
+    // API Base URL - change this to your server URL
+    const API_URL = 'http://localhost:3000/api';
     
     // User state
     let currentUser = null;
-    let users = []; // Store registered users in memory
 
     // Auth DOM elements
     const authArea = document.getElementById('authArea');
@@ -1461,34 +1463,21 @@
     const loginMessage = document.getElementById('loginMessage');
     const registerMessage = document.getElementById('registerMessage');
 
-    // Load users from localStorage
-    function loadUsers() {
-      const stored = localStorage.getItem('lasutra_users');
-      if (stored) {
-        users = JSON.parse(stored);
-      }
-    }
-
-    // Save users to localStorage
-    function saveUsers() {
-      localStorage.setItem('lasutra_users', JSON.stringify(users));
-    }
-
-    // Load current user from localStorage
+    // Load current user from sessionStorage
     function loadCurrentUser() {
-      const stored = localStorage.getItem('lasutra_currentUser');
+      const stored = sessionStorage.getItem('lasutra_currentUser');
       if (stored) {
         currentUser = JSON.parse(stored);
         updateAuthUI();
       }
     }
 
-    // Save current user to localStorage
+    // Save current user to sessionStorage
     function saveCurrentUser() {
       if (currentUser) {
-        localStorage.setItem('lasutra_currentUser', JSON.stringify(currentUser));
+        sessionStorage.setItem('lasutra_currentUser', JSON.stringify(currentUser));
       } else {
-        localStorage.removeItem('lasutra_currentUser');
+        sessionStorage.removeItem('lasutra_currentUser');
       }
     }
 
@@ -1553,49 +1542,77 @@
       registerMessage.textContent = '';
     }
 
-    // Register new user
-    function register(name, email, password) {
-      loadUsers();
-      
-      // Check if email already exists
-      const existingUser = users.find(u => u.email === email);
-      if (existingUser) {
-        return { success: false, message: 'Email already registered' };
+    // Register new user (calls backend API)
+    async function register(name, email, password) {
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Auto login after registration
+          currentUser = data.user;
+          saveCurrentUser();
+          updateAuthUI();
+          return { success: true, message: data.message };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Register error:', err);
+        return { success: false, message: 'Unable to connect to server. Is the backend running?' };
       }
-      
-      // Create new user
-      const newUser = {
-        id: Date.now(),
-        name: name,
-        email: email,
-        password: password // In production, this should be hashed
-      };
-      
-      users.push(newUser);
-      saveUsers();
-      
-      // Auto login after registration
-      currentUser = { id: newUser.id, name: newUser.name, email: newUser.email };
-      saveCurrentUser();
-      updateAuthUI();
-      
-      return { success: true, message: 'Account created successfully!' };
     }
 
-    // Login user
-    function login(email, password) {
-      loadUsers();
-      
-      const user = users.find(u => u.email === email && u.password === password);
-      
-      if (user) {
-        currentUser = { id: user.id, name: user.name, email: user.email };
-        saveCurrentUser();
-        updateAuthUI();
-        return { success: true, message: 'Login successful!' };
+    // Login user (calls backend API)
+    async function login(email, password) {
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentUser = data.user;
+          saveCurrentUser();
+          updateAuthUI();
+          return { success: true, message: data.message };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        return { success: false, message: 'Unable to connect to server. Is the backend running?' };
       }
-      
-      return { success: false, message: 'Invalid email or password' };
+    }
+
+    // Create order (calls backend API)
+    async function createOrder(userId, items, totalAmount) {
+      try {
+        const response = await fetch(`${API_URL}/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, items, totalAmount })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, orderId: data.orderId };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Order error:', err);
+        return { success: false, message: 'Unable to create order' };
+      }
     }
 
     // Logout user
@@ -1608,71 +1625,83 @@
     }
 
     // Event listeners for auth
-    openAuthBtn.addEventListener('click', openAuth);
-    authClose.addEventListener('click', closeAuth);
-    authOverlay.addEventListener('click', (e) => {
-      if (e.target === authOverlay) closeAuth();
-    });
+    // Note: We'll set up these after the page loads since elements may not exist yet
+    function setupAuthEventListeners() {
+      const authOpenBtn = document.getElementById('openAuthBtn');
+      if (authOpenBtn) {
+        authOpenBtn.addEventListener('click', openAuth);
+      }
+      
+      if (authClose) {
+        authClose.addEventListener('click', closeAuth);
+      }
+      
+      if (authOverlay) {
+        authOverlay.addEventListener('click', (e) => {
+          if (e.target === authOverlay) closeAuth();
+        });
+      }
 
-    authTabs.forEach(tab => {
-      tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
-    });
+      authTabs.forEach(tab => {
+        tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+      });
 
-    // Login form submit
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      
-      const result = login(email, password);
-      
-      if (result.success) {
-        loginMessage.className = 'auth-message success';
-        loginMessage.textContent = result.message;
-        setTimeout(() => {
-          closeAuth();
-        }, 1000);
-      } else {
-        loginMessage.className = 'auth-message error';
-        loginMessage.textContent = result.message;
-      }
-    });
+      // Login form submit
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        const result = await login(email, password);
+        
+        if (result.success) {
+          loginMessage.className = 'auth-message success';
+          loginMessage.textContent = result.message;
+          setTimeout(() => {
+            closeAuth();
+          }, 1000);
+        } else {
+          loginMessage.className = 'auth-message error';
+          loginMessage.textContent = result.message;
+        }
+      });
 
-    // Register form submit
-    registerForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('registerName').value;
-      const email = document.getElementById('registerEmail').value;
-      const password = document.getElementById('registerPassword').value;
-      const confirmPassword = document.getElementById('registerConfirmPassword').value;
-      
-      // Validate password match
-      if (password !== confirmPassword) {
-        registerMessage.className = 'auth-message error';
-        registerMessage.textContent = 'Passwords do not match';
-        return;
-      }
-      
-      // Validate password length
-      if (password.length < 6) {
-        registerMessage.className = 'auth-message error';
-        registerMessage.textContent = 'Password must be at least 6 characters';
-        return;
-      }
-      
-      const result = register(name, email, password);
-      
-      if (result.success) {
-        registerMessage.className = 'auth-message success';
-        registerMessage.textContent = result.message;
-        setTimeout(() => {
-          closeAuth();
-        }, 1000);
-      } else {
-        registerMessage.className = 'auth-message error';
-        registerMessage.textContent = result.message;
-      }
-    });
+      // Register form submit
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        
+        // Validate password match
+        if (password !== confirmPassword) {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = 'Passwords do not match';
+          return;
+        }
+        
+        // Validate password length
+        if (password.length < 6) {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = 'Password must be at least 6 characters';
+          return;
+        }
+        
+        const result = await register(name, email, password);
+        
+        if (result.success) {
+          registerMessage.className = 'auth-message success';
+          registerMessage.textContent = result.message;
+          setTimeout(() => {
+            closeAuth();
+          }, 1000);
+        } else {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = result.message;
+        }
+      });
+    }
 
     // ============ END AUTH SYSTEM ============
 
@@ -1680,13 +1709,20 @@
     cartBtn.addEventListener('click', toggleCart);
     closeCart.addEventListener('click', toggleCart);
     cartOverlay.addEventListener('click', toggleCart);
-    checkoutBtn.addEventListener('click', () => {
+    checkoutBtn.addEventListener('click', async () => {
       if (cart.length > 0) {
         if (currentUser) {
-          alert(`Thank you for your order, ${currentUser.name}! Your items will be shipped soon.`);
-          cart = [];
-          updateCart();
-          toggleCart();
+          const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const result = await createOrder(currentUser.id, cart, totalAmount);
+          
+          if (result.success) {
+            alert(`Thank you for your order, ${currentUser.name}! Order #${result.orderId} has been placed.`);
+            cart = [];
+            updateCart();
+            toggleCart();
+          } else {
+            alert('Error: ' + result.message);
+          }
         } else {
           openAuth();
         }
@@ -1694,8 +1730,8 @@
     });
 
     // Initialize
-    loadUsers();
     loadCurrentUser();
+    setupAuthEventListeners();
     renderProducts();
     updateCart();
   </script>
