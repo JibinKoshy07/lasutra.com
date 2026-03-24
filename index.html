@@ -1059,6 +1059,26 @@
       background: #ff5a75;
     }
 
+    /* Address Modal */
+    .address-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .address-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
     /* Protected checkout */
     .checkout-btn.protected {
       position: relative;
@@ -1262,8 +1282,51 @@
           <label>Confirm Password</label>
           <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
         </div>
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" id="registerCountry" placeholder="Enter your country">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="registerState" placeholder="Enter your state">
+        </div>
+        <div class="form-group">
+          <label>Pin Code</label>
+          <input type="text" id="registerPinCode" placeholder="Enter your pin code">
+        </div>
         <button type="submit" class="auth-submit">Create Account</button>
         <div class="auth-message" id="registerMessage"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Address Modal -->
+  <div class="address-overlay" id="addressOverlay">
+    <div class="auth-modal">
+      <button class="auth-close" id="addressClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="auth-header">
+        <h2>Delivery Address</h2>
+        <p>Please enter your shipping address</p>
+      </div>
+      <form id="addressForm">
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" id="addressCountry" placeholder="Enter your country" required>
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="addressState" placeholder="Enter your state" required>
+        </div>
+        <div class="form-group">
+          <label>Pin Code</label>
+          <input type="text" id="addressPinCode" placeholder="Enter your pin code" required>
+        </div>
+        <button type="submit" class="auth-submit">Save & Continue</button>
       </form>
     </div>
   </div>
@@ -1543,12 +1606,12 @@
     }
 
     // Register new user (calls backend API)
-    async function register(name, email, password) {
+    async function register(name, email, password, country, state, pinCode) {
       try {
         const response = await fetch(`${API_URL}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ name, email, password, country, state, pinCode })
         });
         
         const data = await response.json();
@@ -1624,6 +1687,113 @@
       alert('You have been logged out');
     }
 
+    // ============ ADDRESS MODAL ============
+    
+    // Address modal elements
+    const addressOverlay = document.getElementById('addressOverlay');
+    const addressClose = document.getElementById('addressClose');
+    const addressForm = document.getElementById('addressForm');
+    let pendingCheckout = false;
+
+    // Open address modal
+    function openAddressModal() {
+      // Pre-fill if user has existing address
+      if (currentUser) {
+        document.getElementById('addressCountry').value = currentUser.country || '';
+        document.getElementById('addressState').value = currentUser.state || '';
+        document.getElementById('addressPinCode').value = currentUser.pinCode || '';
+      }
+      addressOverlay.classList.add('open');
+    }
+
+    // Close address modal
+    function closeAddressModal() {
+      addressOverlay.classList.remove('open');
+      addressForm.reset();
+    }
+
+    // Update user address in database
+    async function updateAddress(userId, country, state, pinCode) {
+      try {
+        const response = await fetch(`${API_URL}/users/${userId}/address`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country, state, pinCode })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, user: data.user };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Update address error:', err);
+        return { success: false, message: 'Unable to connect to server' };
+      }
+    }
+
+    // Save address and proceed to checkout
+    async function saveAddressAndCheckout() {
+      const country = document.getElementById('addressCountry').value;
+      const state = document.getElementById('addressState').value;
+      const pinCode = document.getElementById('addressPinCode').value;
+      
+      if (!country || !state || !pinCode) {
+        alert('Please fill in all address fields');
+        return;
+      }
+      
+      // Update address in database
+      const result = await updateAddress(currentUser.id, country, state, pinCode);
+      
+      if (result.success) {
+        // Update local user data
+        currentUser.country = country;
+        currentUser.state = state;
+        currentUser.pinCode = pinCode;
+        saveCurrentUser();
+        
+        closeAddressModal();
+        
+        // Proceed with checkout
+        const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const orderResult = await createOrder(currentUser.id, cart, totalAmount);
+        
+        if (orderResult.success) {
+          alert(`Thank you for your order, ${currentUser.name}!\n\nShipping to:\n${country}, ${state} - ${pinCode}\n\nOrder #${orderResult.orderId} has been placed.`);
+          cart = [];
+          updateCart();
+          toggleCart();
+        } else {
+          alert('Error: ' + orderResult.message);
+        }
+      } else {
+        alert('Error updating address: ' + result.message);
+      }
+    }
+
+    // Event listeners for address modal
+    function setupAddressEventListeners() {
+      if (addressClose) {
+        addressClose.addEventListener('click', closeAddressModal);
+      }
+      
+      if (addressOverlay) {
+        addressOverlay.addEventListener('click', (e) => {
+          if (e.target === addressOverlay) closeAddressModal();
+        });
+      }
+      
+      if (addressForm) {
+        addressForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          saveAddressAndCheckout();
+        });
+      }
+    }
+
     // Event listeners for auth
     // Note: We'll set up these after the page loads since elements may not exist yet
     function setupAuthEventListeners() {
@@ -1673,6 +1843,9 @@
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        const country = document.getElementById('registerCountry').value;
+        const state = document.getElementById('registerState').value;
+        const pinCode = document.getElementById('registerPinCode').value;
         
         // Validate password match
         if (password !== confirmPassword) {
@@ -1688,7 +1861,7 @@
           return;
         }
         
-        const result = await register(name, email, password);
+        const result = await register(name, email, password, country, state, pinCode);
         
         if (result.success) {
           registerMessage.className = 'auth-message success';
@@ -1712,17 +1885,8 @@
     checkoutBtn.addEventListener('click', async () => {
       if (cart.length > 0) {
         if (currentUser) {
-          const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          const result = await createOrder(currentUser.id, cart, totalAmount);
-          
-          if (result.success) {
-            alert(`Thank you for your order, ${currentUser.name}! Order #${result.orderId} has been placed.`);
-            cart = [];
-            updateCart();
-            toggleCart();
-          } else {
-            alert('Error: ' + result.message);
-          }
+          // Open address modal for delivery address
+          openAddressModal();
         } else {
           openAuth();
         }
@@ -1732,6 +1896,7 @@
     // Initialize
     loadCurrentUser();
     setupAuthEventListeners();
+    setupAddressEventListeners();
     renderProducts();
     updateCart();
   </script>

@@ -18,7 +18,7 @@ initDatabase();
 // Register new user
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, country, state, pinCode } = req.body;
     
     // Validate input
     if (!name || !email || !password) {
@@ -38,16 +38,23 @@ app.post('/api/auth/register', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Insert user
+    // Insert user with optional address
     const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, hashedPassword]
+      'INSERT INTO users (name, email, password, country, state, pin_code) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, country, state, pin_code',
+      [name, email, hashedPassword, country || null, state || null, pinCode || null]
     );
     
     const user = result.rows[0];
     res.status(201).json({
       message: 'User created successfully',
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email,
+        country: user.country,
+        state: user.state,
+        pinCode: user.pin_code
+      }
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -83,10 +90,17 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     
-    // Return user without password
+    // Return user without password (including address)
     res.json({
       message: 'Login successful',
-      user: { id: user.id, name: user.name, email: user.email }
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email,
+        country: user.country,
+        state: user.state,
+        pinCode: user.pin_code
+      }
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -100,7 +114,7 @@ app.get('/api/users/:id', async (req, res) => {
     const { id } = req.params;
     
     const result = await pool.query(
-      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, country, state, pin_code, created_at FROM users WHERE id = $1',
       [id]
     );
     
@@ -108,9 +122,51 @@ app.get('/api/users/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    res.json(result.rows[0]);
+    const user = result.rows[0];
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      country: user.country,
+      state: user.state,
+      pinCode: user.pin_code,
+      createdAt: user.created_at
+    });
   } catch (err) {
     console.error('Get user error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user address
+app.put('/api/users/:id/address', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { country, state, pinCode } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE users SET country = $1, state = $2, pin_code = $3 WHERE id = $4 RETURNING id, name, email, country, state, pin_code',
+      [country, state, pinCode, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = result.rows[0];
+    res.json({
+      message: 'Address updated successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        country: user.country,
+        state: user.state,
+        pinCode: user.pin_code
+      }
+    });
+  } catch (err) {
+    console.error('Update address error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
