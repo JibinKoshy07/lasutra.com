@@ -101,6 +101,12 @@
       width: 100%;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
     .cart-btn {
       position: relative;
       background: none;
@@ -784,6 +790,319 @@
         max-width: 100%;
       }
     }
+
+    /* Auth Modal */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .auth-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .auth-modal {
+      background: var(--primary);
+      border-radius: 20px;
+      padding: 48px;
+      width: 100%;
+      max-width: 440px;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+    }
+
+    .auth-overlay.open .auth-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .auth-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .auth-close:hover {
+      transform: rotate(90deg);
+    }
+
+    .auth-close svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--text-secondary);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-header h2 {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .auth-header p {
+      color: var(--text-secondary);
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 32px;
+      border-bottom: 2px solid var(--surface);
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 12px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    .auth-tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .auth-tab.active {
+      color: var(--text-primary);
+    }
+
+    .auth-tab.active::after {
+      transform: scaleX(1);
+    }
+
+    .auth-form {
+      display: none;
+    }
+
+    .auth-form.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-group input.error {
+      border-color: #ff4444;
+    }
+
+    .form-error {
+      color: #ff4444;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .auth-submit {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+    }
+
+    .auth-submit:hover {
+      background: #ff5a75;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+    }
+
+    .auth-message {
+      text-align: center;
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .auth-message.success {
+      display: block;
+      background: rgba(0, 217, 165, 0.1);
+      color: var(--success);
+      border: 1px solid var(--success);
+    }
+
+    .auth-message.error {
+      display: block;
+      background: rgba(255, 68, 68, 0.1);
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .user-name {
+      font-weight: 600;
+    }
+
+    .logout-btn {
+      padding: 8px 16px;
+      background: transparent;
+      border: 1px solid var(--text-secondary);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .login-btn {
+      padding: 10px 24px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+      background: #ff5a75;
+    }
+
+    /* Address Modal */
+    .address-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .address-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Protected checkout */
+    .checkout-btn.protected {
+      position: relative;
+    }
+
+    .checkout-btn.protected::after {
+      content: 'Login required';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .checkout-btn.protected:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
   </style>
 </head>
 <body>
@@ -793,17 +1112,23 @@
     <nav class="nav">
       <a href="#">Home</a>
       <a href="#products">Shop</a>
+      <a href="orders.html" id="myOrdersLink" style="display:none;">My Orders</a>
       <a href="#">About</a>
       <a href="#">Contact</a>
     </nav>
-    <button class="cart-btn" id="cartBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-      </svg>
-      <span class="cart-badge" id="cartBadge">0</span>
-    </button>
+    <div class="header-actions">
+      <div id="authArea">
+        <button class="login-btn" id="openAuthBtn">Login</button>
+      </div>
+      <button class="cart-btn" id="cartBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
   </header>
 
   <!-- Hero Section -->
@@ -902,11 +1227,110 @@
     <div class="cart-footer">
       <div class="cart-subtotal">
         <span>Subtotal</span>
-        <span id="cartSubtotal">$0</span>
+        <span id="cartSubtotal">₹0</span>
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
     </div>
   </aside>
+
+  <!-- Auth Modal -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-modal">
+      <button class="auth-close" id="authClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="auth-header">
+        <h2 id="authTitle">Welcome Back</h2>
+        <p id="authSubtitle">Sign in to your account</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login">Login</button>
+        <button class="auth-tab" data-tab="register">Register</button>
+      </div>
+      
+      <!-- Login Form -->
+      <form class="auth-form active" id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="auth-submit">Sign In</button>
+        <div class="auth-message" id="loginMessage"></div>
+      </form>
+      
+      <!-- Register Form -->
+      <form class="auth-form" id="registerForm">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="registerName" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="registerEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="Create a password" required>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" id="registerCountry" placeholder="Enter your country">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="registerState" placeholder="Enter your state">
+        </div>
+        <div class="form-group">
+          <label>Pin Code</label>
+          <input type="text" id="registerPinCode" placeholder="Enter your pin code">
+        </div>
+        <button type="submit" class="auth-submit">Create Account</button>
+        <div class="auth-message" id="registerMessage"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Address Modal -->
+  <div class="address-overlay" id="addressOverlay">
+    <div class="auth-modal">
+      <button class="auth-close" id="addressClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="auth-header">
+        <h2>Delivery Address</h2>
+        <p>Please enter your shipping address</p>
+      </div>
+      <form id="addressForm">
+        <div class="form-group">
+          <label>Country</label>
+          <input type="text" id="addressCountry" placeholder="Enter your country" required>
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="addressState" placeholder="Enter your state" required>
+        </div>
+        <div class="form-group">
+          <label>Pin Code</label>
+          <input type="text" id="addressPinCode" placeholder="Enter your pin code" required>
+        </div>
+        <button type="submit" class="auth-submit">Save & Continue</button>
+      </form>
+    </div>
+  </div>
 
   <script>
     // Product Data
@@ -945,7 +1369,7 @@
           <div class="product-info">
             <div class="product-category">${product.category}</div>
             <div class="product-name">${product.name}</div>
-            <div class="product-price">$${product.price}</div>
+            <div class="product-price">₹${product.price}</div>
             <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
           </div>
         </div>
@@ -1010,7 +1434,7 @@
             </div>
             <div class="cart-item-details">
               <div class="cart-item-name">${item.name}</div>
-              <div class="cart-item-price">$${item.price}</div>
+              <div class="cart-item-price">₹${item.price}</div>
               <div class="quantity-controls">
                 <button class="qty-btn minus" data-id="${item.id}">−</button>
                 <span class="qty-value">${item.quantity}</span>
@@ -1040,7 +1464,7 @@
 
       // Update subtotal
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      cartSubtotal.textContent = `$${subtotal}`;
+      cartSubtotal.textContent = `₹${subtotal}`;
     }
 
     // Decrease Quantity
@@ -1082,17 +1506,401 @@
       cartOverlay.classList.toggle('open');
     }
 
+    // ============ AUTH SYSTEM (Node.js + PostgreSQL) ============
+    
+    // API Base URL - change this to your server URL
+    const API_URL = 'http://localhost:3000/api';
+    
+    // User state
+    let currentUser = null;
+
+    // Auth DOM elements
+    const authArea = document.getElementById('authArea');
+    const openAuthBtn = document.getElementById('openAuthBtn');
+    const authOverlay = document.getElementById('authOverlay');
+    const authClose = document.getElementById('authClose');
+    const authTabs = document.querySelectorAll('.auth-tab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const loginMessage = document.getElementById('loginMessage');
+    const registerMessage = document.getElementById('registerMessage');
+
+    // Load current user from sessionStorage
+    function loadCurrentUser() {
+      const stored = localStorage.getItem('lasutra_user');
+      if (stored) {
+        currentUser = JSON.parse(stored);
+        updateAuthUI();
+      }
+    }
+
+    // Save current user to localStorage
+    function saveCurrentUser() {
+      if (currentUser) {
+        localStorage.setItem('lasutra_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('lasutra_user');
+      }
+    }
+
+    // Update auth UI based on login state
+    function updateAuthUI() {
+      const myOrdersLink = document.getElementById('myOrdersLink');
+      if (currentUser) {
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        authArea.innerHTML = `
+          <div class="user-menu">
+            <div class="user-avatar">${initials}</div>
+            <span class="user-name">${currentUser.name}</span>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+          </div>
+        `;
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        checkoutBtn.classList.remove('protected');
+        if (myOrdersLink) myOrdersLink.style.display = 'inline';
+      } else {
+        authArea.innerHTML = `<button class="login-btn" id="openAuthBtn">Login</button>`;
+        document.getElementById('openAuthBtn').addEventListener('click', openAuth);
+        checkoutBtn.classList.add('protected');
+        if (myOrdersLink) myOrdersLink.style.display = 'none';
+      }
+    }
+
+    // Open auth modal
+    function openAuth() {
+      authOverlay.classList.add('open');
+    }
+
+    // Close auth modal
+    function closeAuth() {
+      authOverlay.classList.remove('open');
+      // Clear form messages
+      loginMessage.className = 'auth-message';
+      loginMessage.textContent = '';
+      registerMessage.className = 'auth-message';
+      registerMessage.textContent = '';
+      // Clear form fields
+      loginForm.reset();
+      registerForm.reset();
+    }
+
+    // Switch between login and register tabs
+    function switchAuthTab(tab) {
+      authTabs.forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      
+      loginForm.classList.toggle('active', tab === 'login');
+      registerForm.classList.toggle('active', tab === 'register');
+      
+      if (tab === 'login') {
+        authTitle.textContent = 'Welcome Back';
+        authSubtitle.textContent = 'Sign in to your account';
+      } else {
+        authTitle.textContent = 'Create Account';
+        authSubtitle.textContent = 'Join us for exclusive deals';
+      }
+      
+      // Clear messages
+      loginMessage.className = 'auth-message';
+      loginMessage.textContent = '';
+      registerMessage.className = 'auth-message';
+      registerMessage.textContent = '';
+    }
+
+    // Register new user (calls backend API)
+    async function register(name, email, password, country, state, pinCode) {
+      try {
+        const response = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, country, state, pinCode })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Auto login after registration
+          currentUser = data.user;
+          saveCurrentUser();
+          updateAuthUI();
+          return { success: true, message: data.message };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Register error:', err);
+        return { success: false, message: 'Unable to connect to server. Is the backend running?' };
+      }
+    }
+
+    // Login user (calls backend API)
+    async function login(email, password) {
+      try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          currentUser = data.user;
+          saveCurrentUser();
+          updateAuthUI();
+          return { success: true, message: data.message };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        return { success: false, message: 'Unable to connect to server. Is the backend running?' };
+      }
+    }
+
+    // Create order (calls backend API)
+    async function createOrder(userId, items, totalAmount, address) {
+      try {
+        const response = await fetch(`${API_URL}/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, items, totalAmount, address })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, orderId: data.orderId };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Order error:', err);
+        return { success: false, message: 'Unable to create order' };
+      }
+    }
+
+    // Logout user
+    function logout() {
+      currentUser = null;
+      saveCurrentUser();
+      updateAuthUI();
+      closeCart();
+      alert('You have been logged out');
+    }
+
+    // ============ ADDRESS MODAL ============
+    
+    // Address modal elements
+    const addressOverlay = document.getElementById('addressOverlay');
+    const addressClose = document.getElementById('addressClose');
+    const addressForm = document.getElementById('addressForm');
+    let pendingCheckout = false;
+
+    // Open address modal
+    function openAddressModal() {
+      // Pre-fill if user has existing address
+      if (currentUser) {
+        document.getElementById('addressCountry').value = currentUser.country || '';
+        document.getElementById('addressState').value = currentUser.state || '';
+        document.getElementById('addressPinCode').value = currentUser.pinCode || '';
+      }
+      addressOverlay.classList.add('open');
+    }
+
+    // Close address modal
+    function closeAddressModal() {
+      addressOverlay.classList.remove('open');
+      addressForm.reset();
+    }
+
+    // Update user address in database
+    async function updateAddress(userId, country, state, pinCode) {
+      try {
+        const response = await fetch(`${API_URL}/users/${userId}/address`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country, state, pinCode })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, user: data.user };
+        } else {
+          return { success: false, message: data.error };
+        }
+      } catch (err) {
+        console.error('Update address error:', err);
+        return { success: false, message: 'Unable to connect to server' };
+      }
+    }
+
+    // Save address and proceed to checkout
+    async function saveAddressAndCheckout() {
+      const country = document.getElementById('addressCountry').value;
+      const state = document.getElementById('addressState').value;
+      const pinCode = document.getElementById('addressPinCode').value;
+      
+      if (!country || !state || !pinCode) {
+        alert('Please fill in all address fields');
+        return;
+      }
+      
+      // Update address in database
+      const result = await updateAddress(currentUser.id, country, state, pinCode);
+      
+      if (result.success) {
+        // Update local user data
+        currentUser.country = country;
+        currentUser.state = state;
+        currentUser.pinCode = pinCode;
+        saveCurrentUser();
+        
+        closeAddressModal();
+        
+        // Proceed with checkout
+        const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const orderResult = await createOrder(currentUser.id, cart, totalAmount, { country, state, pinCode });
+        
+        if (orderResult.success) {
+          alert(`Thank you for your order, ${currentUser.name}!\n\nShipping to:\n${country}, ${state} - ${pinCode}\n\nOrder #${orderResult.orderId} has been placed.`);
+          cart = [];
+          updateCart();
+          toggleCart();
+        } else {
+          alert('Error: ' + orderResult.message);
+        }
+      } else {
+        alert('Error updating address: ' + result.message);
+      }
+    }
+
+    // Event listeners for address modal
+    function setupAddressEventListeners() {
+      if (addressClose) {
+        addressClose.addEventListener('click', closeAddressModal);
+      }
+      
+      if (addressOverlay) {
+        addressOverlay.addEventListener('click', (e) => {
+          if (e.target === addressOverlay) closeAddressModal();
+        });
+      }
+      
+      if (addressForm) {
+        addressForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          saveAddressAndCheckout();
+        });
+      }
+    }
+
+    // Event listeners for auth
+    // Note: We'll set up these after the page loads since elements may not exist yet
+    function setupAuthEventListeners() {
+      const authOpenBtn = document.getElementById('openAuthBtn');
+      if (authOpenBtn) {
+        authOpenBtn.addEventListener('click', openAuth);
+      }
+      
+      if (authClose) {
+        authClose.addEventListener('click', closeAuth);
+      }
+      
+      if (authOverlay) {
+        authOverlay.addEventListener('click', (e) => {
+          if (e.target === authOverlay) closeAuth();
+        });
+      }
+
+      authTabs.forEach(tab => {
+        tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+      });
+
+      // Login form submit
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        const result = await login(email, password);
+        
+        if (result.success) {
+          loginMessage.className = 'auth-message success';
+          loginMessage.textContent = result.message;
+          setTimeout(() => {
+            closeAuth();
+          }, 1000);
+        } else {
+          loginMessage.className = 'auth-message error';
+          loginMessage.textContent = result.message;
+        }
+      });
+
+      // Register form submit
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('registerName').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        const country = document.getElementById('registerCountry').value;
+        const state = document.getElementById('registerState').value;
+        const pinCode = document.getElementById('registerPinCode').value;
+        
+        // Validate password match
+        if (password !== confirmPassword) {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = 'Passwords do not match';
+          return;
+        }
+        
+        // Validate password length
+        if (password.length < 6) {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = 'Password must be at least 6 characters';
+          return;
+        }
+        
+        const result = await register(name, email, password, country, state, pinCode);
+        
+        if (result.success) {
+          registerMessage.className = 'auth-message success';
+          registerMessage.textContent = result.message;
+          setTimeout(() => {
+            closeAuth();
+          }, 1000);
+        } else {
+          registerMessage.className = 'auth-message error';
+          registerMessage.textContent = result.message;
+        }
+      });
+    }
+
+    // ============ END AUTH SYSTEM ============
+
     // Event Listeners
     cartBtn.addEventListener('click', toggleCart);
     closeCart.addEventListener('click', toggleCart);
     cartOverlay.addEventListener('click', toggleCart);
-    checkoutBtn.addEventListener('click', () => {
+    checkoutBtn.addEventListener('click', async () => {
       if (cart.length > 0) {
-        alert('Thank you for your order! This is a demo checkout.');
+        if (currentUser) {
+          // Open address modal for delivery address
+          openAddressModal();
+        } else {
+          openAuth();
+        }
       }
     });
 
     // Initialize
+    loadCurrentUser();
+    setupAuthEventListeners();
+    setupAddressEventListeners();
     renderProducts();
     updateCart();
   </script>
