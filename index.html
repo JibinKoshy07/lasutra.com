@@ -1657,12 +1657,12 @@
     }
 
     // Create order (calls backend API)
-    async function createOrder(userId, items, totalAmount) {
+    async function createOrder(userId, items, totalAmount, address) {
       try {
         const response = await fetch(`${API_URL}/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, items, totalAmount })
+          body: JSON.stringify({ userId, items, totalAmount, address })
         });
         
         const data = await response.json();
@@ -1759,7 +1759,7 @@
         
         // Proceed with checkout
         const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const orderResult = await createOrder(currentUser.id, cart, totalAmount);
+        const orderResult = await createOrder(currentUser.id, cart, totalAmount, { country, state, pinCode });
         
         if (orderResult.success) {
           alert(`Thank you for your order, ${currentUser.name}!\n\nShipping to:\n${country}, ${state} - ${pinCode}\n\nOrder #${orderResult.orderId} has been placed.`);

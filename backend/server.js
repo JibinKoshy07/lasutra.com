@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const { pool, initDatabase } = require('./db');
+const { sendOrderConfirmation, sendAdminNotification } = require('./emailService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -176,7 +177,7 @@ app.put('/api/users/:id/address', async (req, res) => {
 // Create order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { userId, items, totalAmount } = req.body;
+    const { userId, items, totalAmount, address } = req.body;
     
     if (!userId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Invalid order data' });
@@ -203,7 +204,37 @@ app.post('/api/orders', async (req, res) => {
         );
       }
       
+      // Get user details for email
+      const userResult = await client.query(
+        'SELECT name, email, country, state, pin_code FROM users WHERE id = $1',
+        [userId]
+      );
+      
+      const user = userResult.rows[0];
+      const userAddress = {
+        country: address?.country || user.country,
+        state: address?.state || user.state,
+        pinCode: address?.pinCode || user.pin_code
+      };
+      
       await client.query('COMMIT');
+      
+      // Send emails (async, don't wait)
+      sendOrderConfirmation(
+        { name: user.name, email: user.email },
+        orderId,
+        items,
+        totalAmount,
+        userAddress
+      );
+      
+      sendAdminNotification(
+        { name: user.name, email: user.email },
+        orderId,
+        items,
+        totalAmount,
+        userAddress
+      );
       
       res.status(201).json({
         message: 'Order created successfully',
