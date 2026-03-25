@@ -4,6 +4,28 @@ const bcrypt = require('bcryptjs');
 const { pool, initDatabase } = require('./db');
 const { sendOrderConfirmation, sendAdminNotification } = require('./emailService');
 
+// Rate limiting for auth endpoints
+const rateLimit = new Map();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const MAX_ATTEMPTS = 5;
+
+function checkRateLimit(key) {
+  const now = Date.now();
+  const record = rateLimit.get(key);
+  
+  if (!record || now - record.windowStart > RATE_LIMIT_WINDOW) {
+    rateLimit.set(key, { windowStart: now, attempts: 1 });
+    return true;
+  }
+  
+  if (record.attempts >= MAX_ATTEMPTS) {
+    return false;
+  }
+  
+  record.attempts++;
+  return true;
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +46,17 @@ app.post('/api/auth/register', async (req, res) => {
     // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+    
+    // Password strength
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
     
     // Check if user already exists
@@ -283,10 +316,16 @@ app.get('/api/orders/:userId', async (req, res) => {
 
 // ============ ADMIN ROUTES ============
 
-// Admin login
+// Admin login with rate limiting
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    // Rate limiting
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(`admin:${clientIP}`)) {
+      return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+    }
     
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -307,6 +346,9 @@ app.post('/api/admin/login', async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    
+    // Clear rate limit on successful login
+    rateLimit.delete(`admin:${clientIP}`);
     
     res.json({
       message: 'Admin login successful',
@@ -376,34 +418,6 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
     });
   } catch (err) {
     console.error('Update order status error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Create default admin (run once)
-app.post('/api/admin/create-default', async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
-    
-    // Check if admin exists
-    const existing = await pool.query('SELECT id FROM admins WHERE email = $1', [email]);
-    if (existing.rows.length > 0) {
-      return res.status(400).json({ error: 'Admin already exists' });
-    }
-    
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const result = await pool.query(
-      'INSERT INTO admins (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, hashedPassword]
-    );
-    
-    res.status(201).json({
-      message: 'Admin created successfully',
-      admin: result.rows[0]
-    });
-  } catch (err) {
-    console.error('Create admin error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

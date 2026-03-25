@@ -92,20 +92,20 @@ const sendOrderConfirmation = async (user, orderId, items, totalAmount, address)
 // Send admin notification when new order is placed
 const sendAdminNotification = async (user, orderId, items, totalAmount, address) => {
   try {
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.ADMIN_EMAIL) {
-      console.log('⚠️  SMTP or ADMIN_EMAIL not configured. Skipping admin notification.');
-      return { success: false, message: 'SMTP or ADMIN_EMAIL not configured' };
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.ORDER_NOTIFICATION_EMAIL) {
+      console.log('⚠️  SMTP or ORDER_NOTIFICATION_EMAIL not configured. Skipping admin notification.');
+      return { success: false, message: 'SMTP or ORDER_NOTIFICATION_EMAIL not configured' };
     }
 
     const transporter = createTransporter();
 
     const itemsList = items.map(item => 
-      `• ${item.name} x${item.quantity} - $${item.price * item.quantity}`
+      `• ${item.name} x${item.quantity} - ₹${item.price * item.quantity}`
     ).join('\n');
 
     const mailOptions = {
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL,
+      to: process.env.ORDER_NOTIFICATION_EMAIL,
       subject: `🛒 New Order Received - #${orderId} | LaSutra Boutique`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

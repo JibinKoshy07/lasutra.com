@@ -72,6 +72,24 @@ const initDatabase = async () => {
       )
     `);
     
+    // Create default admin from environment variables (only if not exists)
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminName = process.env.ADMIN_NAME || 'Admin';
+    
+    if (adminEmail && adminPassword) {
+      const existingAdmin = await client.query('SELECT id FROM admins WHERE email = $1', [adminEmail]);
+      if (existingAdmin.rows.length === 0) {
+        const bcrypt = require('bcryptjs');
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        await client.query(
+          'INSERT INTO admins (name, email, password) VALUES ($1, $2, $3)',
+          [adminName, adminEmail, hashedPassword]
+        );
+        console.log(`✓ Admin user created: ${adminEmail}`);
+      }
+    }
+    
     // Create order_items table
     await client.query(`
       CREATE TABLE IF NOT EXISTS order_items (
