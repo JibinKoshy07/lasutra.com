@@ -1529,19 +1529,19 @@
 
     // Load current user from sessionStorage
     function loadCurrentUser() {
-      const stored = sessionStorage.getItem('lasutra_currentUser');
+      const stored = localStorage.getItem('lasutra_user');
       if (stored) {
         currentUser = JSON.parse(stored);
         updateAuthUI();
       }
     }
 
-    // Save current user to sessionStorage
+    // Save current user to localStorage
     function saveCurrentUser() {
       if (currentUser) {
-        sessionStorage.setItem('lasutra_currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('lasutra_user', JSON.stringify(currentUser));
       } else {
-        sessionStorage.removeItem('lasutra_currentUser');
+        localStorage.removeItem('lasutra_user');
       }
     }
 
