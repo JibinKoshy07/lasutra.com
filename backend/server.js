@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const { pool, initDatabase } = require('./db');
-const { sendOrderConfirmation, sendAdminNotification } = require('./emailService');
+const { sendOrderConfirmation, sendAdminNotification, sendStatusUpdateEmail } = require('./emailService');
 
 // Rate limiting for auth endpoints
 const rateLimit = new Map();
@@ -403,18 +403,52 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
     
-    const result = await pool.query(
-      'UPDATE orders SET status = $1 WHERE id = $2 RETURNING id, status',
-      [status, id]
+    // Get current order info
+    const orderResult = await pool.query(
+      'SELECT user_id FROM orders WHERE id = $1',
+      [id]
     );
     
-    if (result.rows.length === 0) {
+    if (orderResult.rows.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
     
+    const userId = orderResult.rows[0].user_id;
+    
+    // Update status
+    await pool.query(
+      'UPDATE orders SET status = $1 WHERE id = $2',
+      [status, id]
+    );
+    
+    // Get user and order details for email
+    const userResult = await pool.query(
+      'SELECT name, email FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    const itemsResult = await pool.query(
+      'SELECT product_name, product_price, quantity FROM order_items WHERE order_id = $1',
+      [id]
+    );
+    
+    const totalResult = await pool.query(
+      'SELECT total_amount FROM orders WHERE id = $1',
+      [id]
+    );
+    
+    // Send status update email
+    sendStatusUpdateEmail(
+      { name: userResult.rows[0].name, email: userResult.rows[0].email },
+      id,
+      status,
+      itemsResult.rows,
+      parseFloat(totalResult.rows[0].total_amount)
+    );
+    
     res.json({
       message: 'Order status updated',
-      order: result.rows[0]
+      order: { id: parseInt(id), status }
     });
   } catch (err) {
     console.error('Update order status error:', err);

@@ -1112,8 +1112,7 @@
     <nav class="nav">
       <a href="#">Home</a>
       <a href="#products">Shop</a>
-      <a href="#" id="myOrdersLink" style="display:none;">My Orders</a>
-      <a href="admin.html">Admin</a>
+      <a href="orders.html" id="myOrdersLink" style="display:none;">My Orders</a>
       <a href="#">About</a>
       <a href="#">Contact</a>
     </nav>
@@ -1561,45 +1560,11 @@
         document.getElementById('logoutBtn').addEventListener('click', logout);
         checkoutBtn.classList.remove('protected');
         if (myOrdersLink) myOrdersLink.style.display = 'inline';
-        
-        // Add click handler for my orders
-        if (myOrdersLink) {
-          myOrdersLink.onclick = function(e) {
-            e.preventDefault();
-            showMyOrders();
-          };
-        }
       } else {
         authArea.innerHTML = `<button class="login-btn" id="openAuthBtn">Login</button>`;
         document.getElementById('openAuthBtn').addEventListener('click', openAuth);
         checkoutBtn.classList.add('protected');
         if (myOrdersLink) myOrdersLink.style.display = 'none';
-      }
-    }
-    
-    // Show user's orders
-    async function showMyOrders() {
-      if (!currentUser) return;
-      
-      try {
-        const response = await fetch(`${API_URL}/orders/${currentUser.id}`);
-        const orders = await response.json();
-        
-        if (orders.length === 0) {
-          alert('You have no orders yet!');
-          return;
-        }
-        
-        let ordersText = 'Your Orders:\n\n';
-        orders.forEach(order => {
-          const date = new Date(order.created_at).toLocaleDateString();
-          const statusText = order.status.replace('_', ' ');
-          ordersText += `Order #${order.id} - ₹${order.total_amount}\nStatus: ${statusText}\nDate: ${date}\n\n`;
-        });
-        
-        alert(ordersText);
-      } catch (err) {
-        alert('Unable to load orders');
       }
     }
 

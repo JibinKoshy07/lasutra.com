@@ -160,7 +160,88 @@ const sendAdminNotification = async (user, orderId, items, totalAmount, address)
   }
 };
 
+// Send order status update email to customer
+const sendStatusUpdateEmail = async (user, orderId, newStatus, items, totalAmount) => {
+  try {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.log('⚠️  SMTP not configured. Skipping status update email.');
+      return { success: false, message: 'SMTP not configured' };
+    }
+
+    const transporter = createTransporter();
+    
+    const statusMessages = {
+      'pending': 'Your order has been received and is being processed.',
+      'in_progress': 'Your order is now being prepared.',
+      'shipped': 'Your order has been shipped and is on its way!',
+      'delivered': 'Your order has been delivered. Thank you for shopping with us!'
+    };
+
+    const statusEmoji = {
+      'pending': '📋',
+      'in_progress': '⚙️',
+      'shipped': '📦',
+      'delivered': '✅'
+    };
+
+    const mailOptions = {
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: user.email,
+      subject: `Order #${orderId} Status Update - ${newStatus.replace('_', ' ').toUpperCase()} | LaSutra Boutique`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #1a1a2e; padding: 20px; text-align: center;">
+            <h1 style="color: #e94560; margin: 0;">LaSutra Boutique</h1>
+          </div>
+          
+          <div style="padding: 30px; background: #f8f8f8;">
+            <h2 style="color: #333;">Order Status Update ${statusEmoji[newStatus]}</h2>
+            
+            <p>Dear <strong>${user.name}</strong>,</p>
+            
+            <p>${statusMessages[newStatus]}</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #e94560; margin-top: 0;">Order Details</h3>
+              <p><strong>Order ID:</strong> #${orderId}</p>
+              <p><strong>New Status:</strong> <span style="text-transform: capitalize;">${newStatus.replace('_', ' ')}</span></p>
+              <p><strong>Total Amount:</strong> ₹${totalAmount.toFixed(2)}</p>
+            </div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #e94560; margin-top: 0;">Items</h3>
+              <ul style="list-style: none; padding: 0;">
+                ${items.map(item => `
+                  <li style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                    ${item.product_name} x${item.quantity}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+            
+            <p style="color: #666; font-size: 14px;">
+              Thank you for shopping with LaSutra Boutique!
+            </p>
+          </div>
+          
+          <div style="background: #1a1a2e; padding: 20px; text-align: center; color: white;">
+            <p style="margin: 0;">&copy; 2024 LaSutra Boutique. All rights reserved.</p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`📧 Order status update sent to ${user.email}`);
+    return { success: true };
+  } catch (err) {
+    console.error('❌ Error sending status update email:', err.message);
+    return { success: false, message: err.message };
+  }
+};
+
 module.exports = {
   sendOrderConfirmation,
-  sendAdminNotification
+  sendAdminNotification,
+  sendStatusUpdateEmail
 };

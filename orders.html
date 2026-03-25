@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders | LaSutra Boutique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #e94560;
+      --background: #0f0f1a;
+      --surface: #1f1f35;
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0b0;
+      --success: #00d9a5;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--background);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 15, 26, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .nav {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .user-name {
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .main-content {
+      padding: 120px 40px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      color: var(--text-secondary);
+    }
+
+    .orders-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .order-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .order-id {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .order-date {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .order-status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-pending {
+      background: rgba(255, 193, 7, 0.15);
+      color: #ffc107;
+    }
+
+    .status-in_progress {
+      background: rgba(0, 123, 255, 0.15);
+      color: #007bff;
+    }
+
+    .status-shipped {
+      background: rgba(138, 43, 226, 0.15);
+      color: #8a2be2;
+    }
+
+    .status-delivered {
+      background: rgba(40, 167, 69, 0.15);
+      color: #28a745;
+    }
+
+    .order-items {
+      margin-bottom: 20px;
+    }
+
+    .order-items h3 {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .order-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      color: var(--text-primary);
+    }
+
+    .item-qty {
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .item-price {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .shipping-info {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .order-total {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state h2 {
+      margin-bottom: 10px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .empty-state a {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .empty-state a:hover {
+      background: #d63850;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-secondary);
+    }
+
+    .error {
+      text-align: center;
+      padding: 60px;
+      color: #ff5a5a;
+    }
+
+    .login-prompt {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .login-prompt h2 {
+      margin-bottom: 10px;
+    }
+
+    .login-prompt p {
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .login-prompt button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo">LaSutra</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#products">Shop</a>
+      <a href="orders.html">My Orders</a>
+    </nav>
+    <div class="header-actions" id="headerActions">
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>My Orders</h1>
+      <p>Track and manage your orders</p>
+    </div>
+    <div id="ordersContainer">
+      <div class="loading">Loading your orders...</div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    let currentUser = null;
+
+    function init() {
+      const savedUser = localStorage.getItem('lasutra_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        updateUI();
+        loadOrders();
+      } else {
+        showLoginPrompt();
+      }
+    }
+
+    function updateUI() {
+      const headerActions = document.getElementById('headerActions');
+      if (currentUser) {
+        const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        headerActions.innerHTML = `
+          <div class="user-menu">
+            <div class="user-avatar">${initials}</div>
+            <span class="user-name">${currentUser.name}</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+          </div>
+        `;
+      } else {
+        headerActions.innerHTML = `<button class="logout-btn" onclick="location.href='index.html'">Login</button>`;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('lasutra_user');
+      location.href = 'index.html';
+    }
+
+    function showLoginPrompt() {
+      document.getElementById('ordersContainer').innerHTML = `
+        <div class="login-prompt">
+          <h2>Please Login</h2>
+          <p>You need to be logged in to view your orders.</p>
+          <button onclick="location.href='index.html'">Go to Login</button>
+        </div>
+      `;
+      updateUI();
+    }
+
+    async function loadOrders() {
+      const container = document.getElementById('ordersContainer');
+      
+      try {
+        const response = await fetch(`${API_URL}/orders/${currentUser.id}`);
+        const orders = await response.json();
+
+        if (!orders || orders.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h2>No Orders Yet</h2>
+              <p>You haven't placed any orders yet.</p>
+              <a href="index.html#products">Start Shopping</a>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="orders-container">
+            ${orders.map(order => `
+              <div class="order-card">
+                <div class="order-header">
+                  <div>
+                    <div class="order-id">Order #${order.id}</div>
+                    <div class="order-date">${new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                  </div>
+                  <span class="order-status status-${order.status}">${order.status.replace('_', ' ')}</span>
+                </div>
+                
+                <div class="order-items">
+                  <h3>Items</h3>
+                  ${order.items.map(item => `
+                    <div class="order-item">
+                      <div>
+                        <div class="item-name">${item.product_name}</div>
+                        <div class="item-qty">Qty: ${item.quantity}</div>
+                      </div>
+                      <div class="item-price">₹${(item.product_price * item.quantity).toFixed(2)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+                
+                <div class="order-footer">
+                  <div class="shipping-info">
+                    ${order.shipping_state}, ${order.shipping_country} - ${order.shipping_pin_code}
+                  </div>
+                  <div class="order-total">₹${parseFloat(order.total_amount).toFixed(2)}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        document.getElementById('ordersContainer').innerHTML = `
+          <div class="error">Failed to load orders. Please try again.</div>
+        `;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
