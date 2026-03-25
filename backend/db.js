@@ -37,13 +37,37 @@ const initDatabase = async () => {
       // Columns might already exist, ignore
     }
     
-    // Create orders table
+    // Create orders table with status
     await client.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         total_amount DECIMAL(10, 2) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
+        shipping_country VARCHAR(255),
+        shipping_state VARCHAR(255),
+        shipping_pin_code VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Add status column if not exists
+    try {
+      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending'`);
+      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(255)`);
+      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(255)`);
+      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_pin_code VARCHAR(20)`);
+    } catch (e) {
+      // Columns might already exist
+    }
+    
+    // Create admins table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        name VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);

@@ -1112,6 +1112,8 @@
     <nav class="nav">
       <a href="#">Home</a>
       <a href="#products">Shop</a>
+      <a href="#" id="myOrdersLink" style="display:none;">My Orders</a>
+      <a href="admin.html">Admin</a>
       <a href="#">About</a>
       <a href="#">Contact</a>
     </nav>
@@ -1226,7 +1228,7 @@
     <div class="cart-footer">
       <div class="cart-subtotal">
         <span>Subtotal</span>
-        <span id="cartSubtotal">$0</span>
+        <span id="cartSubtotal">₹0</span>
       </div>
       <button class="checkout-btn" id="checkoutBtn">Checkout</button>
     </div>
@@ -1368,7 +1370,7 @@
           <div class="product-info">
             <div class="product-category">${product.category}</div>
             <div class="product-name">${product.name}</div>
-            <div class="product-price">$${product.price}</div>
+            <div class="product-price">₹${product.price}</div>
             <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
           </div>
         </div>
@@ -1433,7 +1435,7 @@
             </div>
             <div class="cart-item-details">
               <div class="cart-item-name">${item.name}</div>
-              <div class="cart-item-price">$${item.price}</div>
+              <div class="cart-item-price">₹${item.price}</div>
               <div class="quantity-controls">
                 <button class="qty-btn minus" data-id="${item.id}">−</button>
                 <span class="qty-value">${item.quantity}</span>
@@ -1463,7 +1465,7 @@
 
       // Update subtotal
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      cartSubtotal.textContent = `$${subtotal}`;
+      cartSubtotal.textContent = `₹${subtotal}`;
     }
 
     // Decrease Quantity
@@ -1546,6 +1548,7 @@
 
     // Update auth UI based on login state
     function updateAuthUI() {
+      const myOrdersLink = document.getElementById('myOrdersLink');
       if (currentUser) {
         const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
         authArea.innerHTML = `
@@ -1557,10 +1560,46 @@
         `;
         document.getElementById('logoutBtn').addEventListener('click', logout);
         checkoutBtn.classList.remove('protected');
+        if (myOrdersLink) myOrdersLink.style.display = 'inline';
+        
+        // Add click handler for my orders
+        if (myOrdersLink) {
+          myOrdersLink.onclick = function(e) {
+            e.preventDefault();
+            showMyOrders();
+          };
+        }
       } else {
         authArea.innerHTML = `<button class="login-btn" id="openAuthBtn">Login</button>`;
         document.getElementById('openAuthBtn').addEventListener('click', openAuth);
         checkoutBtn.classList.add('protected');
+        if (myOrdersLink) myOrdersLink.style.display = 'none';
+      }
+    }
+    
+    // Show user's orders
+    async function showMyOrders() {
+      if (!currentUser) return;
+      
+      try {
+        const response = await fetch(`${API_URL}/orders/${currentUser.id}`);
+        const orders = await response.json();
+        
+        if (orders.length === 0) {
+          alert('You have no orders yet!');
+          return;
+        }
+        
+        let ordersText = 'Your Orders:\n\n';
+        orders.forEach(order => {
+          const date = new Date(order.created_at).toLocaleDateString();
+          const statusText = order.status.replace('_', ' ');
+          ordersText += `Order #${order.id} - ₹${order.total_amount}\nStatus: ${statusText}\nDate: ${date}\n\n`;
+        });
+        
+        alert(ordersText);
+      } catch (err) {
+        alert('Unable to load orders');
       }
     }
 

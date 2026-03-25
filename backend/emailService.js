@@ -47,7 +47,7 @@ const sendOrderConfirmation = async (user, orderId, items, totalAmount, address)
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="color: #e94560; margin-top: 0;">Order Details</h3>
               <p><strong>Order ID:</strong> #${orderId}</p>
-              <p><strong>Total Amount:</strong> $${totalAmount.toFixed(2)}</p>
+              <p><strong>Total Amount:</strong> ₹${totalAmount.toFixed(2)}</p>
             </div>
             
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -55,11 +55,11 @@ const sendOrderConfirmation = async (user, orderId, items, totalAmount, address)
               <ul style="list-style: none; padding: 0;">
                 ${items.map(item => `
                   <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ${item.name} x${item.quantity} - <strong>$${item.price * item.quantity}</strong>
+                    ${item.name} x${item.quantity} - <strong>₹${(item.price * item.quantity).toFixed(2)}</strong>
                   </li>
                 `).join('')}
               </ul>
-              <p style="font-size: 18px;"><strong>Total: $${totalAmount.toFixed(2)}</strong></p>
+              <p style="font-size: 18px;"><strong>Total: ₹${totalAmount.toFixed(2)}</strong></p>
             </div>
             
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -123,7 +123,7 @@ const sendAdminNotification = async (user, orderId, items, totalAmount, address)
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <h3 style="color: #e94560; margin-top: 0;">Order Details</h3>
               <p><strong>Order ID:</strong> #${orderId}</p>
-              <p><strong>Total Amount:</strong> <span style="font-size: 24px; color: #00d9a5;">$${totalAmount.toFixed(2)}</span></p>
+              <p><strong>Total Amount:</strong> <span style="font-size: 24px; color: #00d9a5;">₹${totalAmount.toFixed(2)}</span></p>
             </div>
             
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -131,7 +131,7 @@ const sendAdminNotification = async (user, orderId, items, totalAmount, address)
               <ul style="list-style: none; padding: 0;">
                 ${items.map(item => `
                   <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
-                    ${item.name} x${item.quantity} - <strong>$${item.price * item.quantity}</strong>
+                    ${item.name} x${item.quantity} - <strong>₹${(item.price * item.quantity).toFixed(2)}</strong>
                   </li>
                 `).join('')}
               </ul>

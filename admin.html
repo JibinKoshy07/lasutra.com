@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LaSutra Boutique - Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0f0f1a;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* Login Styles */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+
+    .login-box {
+      background: #1a1a2e;
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-logo h1 {
+      font-family: 'Playfair Display', serif;
+      color: #e94560;
+      font-size: 28px;
+    }
+
+    .login-logo span {
+      color: #888;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px;
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: #e94560;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .login-btn:hover {
+      background: #d63850;
+    }
+
+    .error-msg {
+      color: #ff5a5a;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    /* Admin Panel Styles */
+    .admin-container {
+      display: none;
+    }
+
+    .admin-container.active {
+      display: block;
+    }
+
+    .admin-header {
+      background: #1a1a2e;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+
+    .admin-logo {
+      font-family: 'Playfair Display', serif;
+      color: #e94560;
+      font-size: 24px;
+    }
+
+    .admin-logo span {
+      color: #888;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .admin-nav button {
+      background: transparent;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+
+    .admin-nav button:hover {
+      color: #e94560;
+    }
+
+    .admin-nav button.active {
+      color: #e94560;
+    }
+
+    .admin-main {
+      padding: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin-bottom: 30px;
+      color: #fff;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: #1a1a2e;
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    .stat-card h3 {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #e94560;
+    }
+
+    /* Orders Table */
+    .orders-table {
+      width: 100%;
+      background: #1a1a2e;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .orders-table th,
+    .orders-table td {
+      padding: 16px 20px;
+      text-align: left;
+    }
+
+    .orders-table th {
+      background: #252540;
+      color: #888;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .orders-table td {
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+    }
+
+    .orders-table tr:hover {
+      background: #252540;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+    }
+
+    .status-in_progress {
+      background: rgba(0, 123, 255, 0.2);
+      color: #007bff;
+    }
+
+    .status-shipped {
+      background: rgba(138, 43, 226, 0.2);
+      color: #8a2be2;
+    }
+
+    .status-delivered {
+      background: rgba(40, 167, 69, 0.2);
+      color: #28a745;
+    }
+
+    .status-select {
+      padding: 8px 12px;
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .status-select:focus {
+      outline: none;
+      border-color: #e94560;
+    }
+
+    .order-items {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    .order-items li {
+      margin-bottom: 4px;
+    }
+
+    .shipping-info {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    .no-orders {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .admin-header {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .orders-table {
+        overflow-x: auto;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Page -->
+  <div class="login-container" id="loginPage">
+    <div class="login-box">
+      <div class="login-logo">
+        <h1>LaSutra</h1>
+        <span>Admin Panel</span>
+      </div>
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="adminPassword" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="login-btn">Login</button>
+        <div class="error-msg" id="loginError"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-container" id="adminPanel">
+    <header class="admin-header">
+      <div class="admin-logo">
+        LaSutra <span>Admin Panel</span>
+      </div>
+      <nav class="admin-nav">
+        <button class="active" onclick="loadOrders()">Orders</button>
+        <button onclick="logout()">Logout</button>
+      </nav>
+    </header>
+
+    <main class="admin-main">
+      <h2 class="section-title">Orders Overview</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Orders</h3>
+          <div class="value" id="totalOrders">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Pending</h3>
+          <div class="value" id="pendingOrders">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>In Progress</h3>
+          <div class="value" id="inProgressOrders">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Delivered</h3>
+          <div class="value" id="deliveredOrders">0</div>
+        </div>
+      </div>
+
+      <div id="ordersContainer">
+        <div class="loading">Loading orders...</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+
+    // Check if admin is logged in
+    const savedAdmin = localStorage.getItem('lasutra_admin');
+    if (savedAdmin) {
+      showAdminPanel();
+      loadOrders();
+    }
+
+    // Login form
+    document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+      const errorEl = document.getElementById('loginError');
+
+      try {
+        const response = await fetch(`${API_URL}/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('lasutra_admin', JSON.stringify(data.admin));
+          showAdminPanel();
+          loadOrders();
+        } else {
+          errorEl.textContent = data.error || 'Login failed';
+        }
+      } catch (err) {
+        errorEl.textContent = 'Cannot connect to server';
+      }
+    });
+
+    function showAdminPanel() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('adminPanel').classList.add('active');
+    }
+
+    function logout() {
+      localStorage.removeItem('lasutra_admin');
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('adminPanel').classList.remove('active');
+    }
+
+    async function loadOrders() {
+      const container = document.getElementById('ordersContainer');
+      container.innerHTML = '<div class="loading">Loading orders...</div>';
+
+      try {
+        const response = await fetch(`${API_URL}/admin/orders`);
+        const orders = await response.json();
+
+        if (orders.length === 0) {
+          container.innerHTML = '<div class="no-orders">No orders yet</div>';
+          return;
+        }
+
+        // Update stats
+        document.getElementById('totalOrders').textContent = orders.length;
+        document.getElementById('pendingOrders').textContent = orders.filter(o => o.status === 'pending').length;
+        document.getElementById('inProgressOrders').textContent = orders.filter(o => o.status === 'in_progress' || o.status === 'shipped').length;
+        document.getElementById('deliveredOrders').textContent = orders.filter(o => o.status === 'delivered').length;
+
+        // Render table
+        container.innerHTML = `
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Shipping</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orders.map(order => `
+                <tr>
+                  <td>#${order.id}</td>
+                  <td>
+                    <strong>${order.user_name}</strong><br>
+                    <span style="color: #888; font-size: 12px;">${order.user_email}</span>
+                  </td>
+                  <td>
+                    <ul class="order-items">
+                      ${order.items.map(item => `
+                        <li>${item.product_name} x${item.quantity} - ₹${(item.product_price * item.quantity).toFixed(2)}</li>
+                      `).join('')}
+                    </ul>
+                  </td>
+                  <td style="color: #e94560; font-weight: 600;">₹${parseFloat(order.total_amount).toFixed(2)}</td>
+                  <td>
+                    <div class="shipping-info">
+                      ${order.shipping_state}, ${order.shipping_country}<br>
+                      ${order.shipping_pin_code}
+                    </div>
+                  </td>
+                  <td>
+                    <select class="status-select" onchange="updateStatus(${order.id}, this.value)">
+                      <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                      <option value="in_progress" ${order.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+                      <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                      <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                    </select>
+                    <span class="status-badge status-${order.status}">${order.status.replace('_', ' ')}</span>
+                  </td>
+                  <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        container.innerHTML = '<div class="error-msg">Failed to load orders</div>';
+      }
+    }
+
+    async function updateStatus(orderId, status) {
+      try {
+        const response = await fetch(`${API_URL}/admin/orders/${orderId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+          loadOrders();
+        }
+      } catch (err) {
+        alert('Failed to update status');
+      }
+    }
+  </script>
+</body>
+</html>
