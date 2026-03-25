@@ -14,7 +14,7 @@ const initDatabase = async () => {
   const client = await pool.connect();
   
   try {
-    // Create users table with address fields
+    // Create users table
     await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -27,6 +27,15 @@ const initDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Add address columns if they don't exist (for existing tables)
+    try {
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(255)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS state VARCHAR(255)`);
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_code VARCHAR(20)`);
+    } catch (e) {
+      // Columns might already exist, ignore
+    }
     
     // Create orders table
     await client.query(`
