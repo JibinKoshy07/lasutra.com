@@ -212,9 +212,9 @@ app.post('/api/orders', async (req, res) => {
       
       const user = userResult.rows[0];
       const userAddress = {
-        country: address?.country || user.country,
-        state: address?.state || user.state,
-        pinCode: address?.pinCode || user.pin_code
+        country: (address && address.country) ? address.country : user.country,
+        state: (address && address.state) ? address.state : user.state,
+        pinCode: (address && address.pinCode) ? address.pinCode : user.pin_code
       };
       
       await client.query('COMMIT');
