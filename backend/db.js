@@ -101,7 +101,69 @@ const initDatabase = async () => {
         quantity INTEGER NOT NULL
       )
     `);
-    
+
+    // Create categories table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create products table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        image VARCHAR(1024),
+        description TEXT,
+        stock INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed categories and products only if empty (preserves existing store content)
+    const existingProducts = await client.query('SELECT id FROM products LIMIT 1');
+    if (existingProducts.rows.length === 0) {
+      const seedCategories = ['Dresses', 'Outerwear', 'Knitwear', 'Bottoms', 'Tops'];
+      const categoryIds = {};
+
+      for (const name of seedCategories) {
+        const result = await client.query(
+          'INSERT INTO categories (name) VALUES ($1) ON CONFLICT (name) DO NOTHING RETURNING id',
+          [name]
+        );
+        if (result.rows.length > 0) {
+          categoryIds[name] = result.rows[0].id;
+        } else {
+          const existing = await client.query('SELECT id FROM categories WHERE name = $1', [name]);
+          categoryIds[name] = existing.rows[0].id;
+        }
+      }
+
+      const seedProducts = [
+        { name: 'Silk Evening Gown', category: 'Dresses', price: 289, image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=500&fit=crop', description: 'Elegant floor-length silk gown for evening occasions.', stock: 10 },
+        { name: 'Leather Biker Jacket', category: 'Outerwear', price: 345, image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop', description: 'Classic genuine leather biker jacket with asymmetric zip.', stock: 8 },
+        { name: 'Cashmere Sweater', category: 'Knitwear', price: 199, image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=500&fit=crop', description: 'Ultra-soft pure cashmere crew-neck sweater.', stock: 15 },
+        { name: 'Tailored Trousers', category: 'Bottoms', price: 159, image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=500&fit=crop', description: 'Sharp tailored trousers with a slim, modern fit.', stock: 20 },
+        { name: 'Linen Summer Dress', category: 'Dresses', price: 175, image: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&h=500&fit=crop', description: 'Breathable linen dress, perfect for warm days.', stock: 12 },
+        { name: 'Denim Jacket', category: 'Outerwear', price: 189, image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400&h=500&fit=crop', description: 'Vintage-wash denim jacket with button closure.', stock: 14 },
+        { name: 'Silk Blouse', category: 'Tops', price: 145, image: 'https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=400&h=500&fit=crop', description: 'Lightweight silk blouse with a relaxed silhouette.', stock: 18 },
+        { name: 'Pleated Midi Skirt', category: 'Bottoms', price: 129, image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0uj5b?w=400&h=500&fit=crop', description: 'Flowing pleated midi skirt with elastic waistband.', stock: 16 }
+      ];
+
+      for (const p of seedProducts) {
+        await client.query(
+          'INSERT INTO products (name, category_id, price, image, description, stock) VALUES ($1, $2, $3, $4, $5, $6)',
+          [p.name, categoryIds[p.category], p.price, p.image, p.description, p.stock]
+        );
+      }
+      console.log(`✓ Seeded ${seedProducts.length} products and ${seedCategories.length} categories`);
+    }
+
     console.log('✅ Database tables created successfully');
   } catch (err) {
     console.error('❌ Error initializing database:', err.message);

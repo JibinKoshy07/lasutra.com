@@ -282,6 +282,37 @@
       margin: 0 auto;
     }
 
+    .category-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .filter-chip {
+      padding: 8px 20px;
+      background: #1f1f35;
+      border: 1px solid #2a2a40;
+      border-radius: 20px;
+      color: #a0a0b0;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .filter-chip:hover {
+      border-color: #e94560;
+      color: #fff;
+    }
+
+    .filter-chip.active {
+      background: #e94560;
+      border-color: #e94560;
+      color: #fff;
+    }
+
     .section-header {
       text-align: center;
       margin-bottom: 60px;
@@ -1152,6 +1183,7 @@
       <h2>Featured Collection</h2>
       <p>Discover our latest arrivals</p>
     </div>
+    <div class="category-filters" id="categoryFilters"></div>
     <div class="products-grid" id="productsGrid">
       <!-- Products will be rendered here -->
     </div>
@@ -1333,8 +1365,8 @@
   </div>
 
   <script>
-    // Product Data
-    const products = [
+    // Product Data (fallback used only if the API is unreachable)
+    const fallbackProducts = [
       { id: 1, name: "Silk Evening Gown", category: "Dresses", price: 289, image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=500&fit=crop" },
       { id: 2, name: "Leather Biker Jacket", category: "Outerwear", price: 345, image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=500&fit=crop" },
       { id: 3, name: "Cashmere Sweater", category: "Knitwear", price: 199, image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=500&fit=crop" },
@@ -1344,6 +1376,49 @@
       { id: 7, name: "Silk Blouse", category: "Tops", price: 145, image: "https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=400&h=500&fit=crop" },
       { id: 8, name: "Pleated Midi Skirt", category: "Bottoms", price: 129, image: "https://images.unsplash.com/photo-1583496661160-fb5886a0uj5b?w=400&h=500&fit=crop" }
     ];
+
+    let products = [];
+    let activeCategory = 'all';
+
+    // Load products and categories from the backend API
+    async function loadStoreData() {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`${API_URL}/products`),
+          fetch(`${API_URL}/categories`)
+        ]);
+
+        if (!productsRes.ok) throw new Error('Products request failed');
+
+        products = await productsRes.json();
+        const categories = categoriesRes.ok ? await categoriesRes.json() : [];
+
+        renderCategoryFilters(categories.filter(c => c.product_count > 0));
+      } catch (err) {
+        console.warn('Could not load products from API, using fallback data:', err);
+        products = fallbackProducts;
+        renderCategoryFilters([]);
+      }
+      renderProducts();
+    }
+
+    function renderCategoryFilters(categories) {
+      const container = document.getElementById('categoryFilters');
+      const chips = [{ id: 'all', name: 'All' }, ...categories];
+      container.innerHTML = chips.map(c => `
+        <button class="filter-chip ${String(c.id) === String(activeCategory) ? 'active' : ''}"
+                data-category="${c.id}">${c.name}</button>
+      `).join('');
+
+      container.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          activeCategory = chip.dataset.category;
+          container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderProducts();
+        });
+      });
+    }
 
     // Cart State
     let cart = [];
@@ -1361,7 +1436,16 @@
 
     // Render Products
     function renderProducts() {
-      productsGrid.innerHTML = products.map(product => `
+      const visible = activeCategory === 'all'
+        ? products
+        : products.filter(p => String(p.category_id) === activeCategory || p.category === activeCategory);
+
+      if (visible.length === 0) {
+        productsGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #a0a0b0; padding: 60px 0;">No products in this category yet.</p>';
+        return;
+      }
+
+      productsGrid.innerHTML = visible.map(product => `
         <div class="product-card">
           <div class="product-image">
             <img src="${product.image}" alt="${product.name}" loading="lazy">
@@ -1901,7 +1985,7 @@
     loadCurrentUser();
     setupAuthEventListeners();
     setupAddressEventListeners();
-    renderProducts();
+    loadStoreData();
     updateCart();
   </script>
 </body>

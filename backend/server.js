@@ -456,6 +456,156 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
   }
 });
 
+// ============ PRODUCT & CATEGORY ROUTES ============
+
+// Public: list categories (with product count)
+app.get('/api/categories', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT c.id, c.name, COUNT(p.id)::int AS product_count
+      FROM categories c
+      LEFT JOIN products p ON p.category_id = c.id
+      GROUP BY c.id
+      ORDER BY c.name
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get categories error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Public: list products (optionally filter by category id)
+app.get('/api/products', async (req, res) => {
+  try {
+    const { category } = req.query;
+    const params = [];
+    let where = '';
+    if (category) {
+      params.push(category);
+      where = 'WHERE p.category_id = $1';
+    }
+    const result = await pool.query(`
+      SELECT p.id, p.name, p.price, p.image, p.description, p.stock, p.created_at,
+             p.category_id, c.name AS category
+      FROM products p
+      LEFT JOIN categories c ON c.id = p.category_id
+      ${where}
+      ORDER BY p.id
+    `, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get products error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: create product
+app.post('/api/admin/products', async (req, res) => {
+  try {
+    const { name, categoryId, price, image, description, stock } = req.body;
+
+    if (!name || price === undefined || price === null || price === '') {
+      return res.status(400).json({ error: 'Name and price are required' });
+    }
+    if (isNaN(parseFloat(price)) || parseFloat(price) < 0) {
+      return res.status(400).json({ error: 'Price must be a valid positive number' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO products (name, category_id, price, image, description, stock) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [name, categoryId || null, parseFloat(price), image || null, description || null, parseInt(stock) || 0]
+    );
+    res.status(201).json({ message: 'Product created', product: result.rows[0] });
+  } catch (err) {
+    console.error('Create product error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: update product
+app.put('/api/admin/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, categoryId, price, image, description, stock } = req.body;
+
+    if (!name || price === undefined || price === null || price === '') {
+      return res.status(400).json({ error: 'Name and price are required' });
+    }
+    if (isNaN(parseFloat(price)) || parseFloat(price) < 0) {
+      return res.status(400).json({ error: 'Price must be a valid positive number' });
+    }
+
+    const result = await pool.query(
+      'UPDATE products SET name = $1, category_id = $2, price = $3, image = $4, description = $5, stock = $6 WHERE id = $7 RETURNING *',
+      [name, categoryId || null, parseFloat(price), image || null, description || null, parseInt(stock) || 0, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json({ message: 'Product updated', product: result.rows[0] });
+  } catch (err) {
+    console.error('Update product error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: delete product
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json({ message: 'Product deleted' });
+  } catch (err) {
+    console.error('Delete product error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: create category
+app.post('/api/admin/categories', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO categories (name) VALUES ($1) RETURNING *',
+      [name.trim()]
+    );
+    res.status(201).json({ message: 'Category created', category: result.rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'A category with this name already exists' });
+    }
+    console.error('Create category error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: delete category (products in it are kept, category set to null)
+app.delete('/api/admin/categories/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM categories WHERE id = $1 RETURNING id', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    res.json({ message: 'Category deleted' });
+  } catch (err) {
+    console.error('Delete category error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
