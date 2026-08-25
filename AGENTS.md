@@ -29,6 +29,6 @@
 4. quote dotenv values containing `#`
 
 ## Testing Locally (this sandbox)
-- Backend runs on the external sandbox port (`12001`); pages should reference `http://localhost:3000/api` in source — sandbox maps it
+- Backend runs on the external sandbox port (`12001`); sandbox proxy forwards `/api` there, so source code must ALWAYS use the auto-detect snippet at the top of each page (see Stack section) — direct hostnames are a footgun
 - `product.html?id=N` page needs an extra ID check — renders blank if product fetch fails or JS has template literal issues
 - When testing browser-side: register a user, add to cart (localStorage), then buy-now — sessionStorage carries items to checkout.html
