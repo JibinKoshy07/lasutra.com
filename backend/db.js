@@ -117,6 +117,12 @@ const initDatabase = async () => {
       )
     `);
 
+    // Self-reference for subcategories (one level deep). Idempotent for existing DBs.
+    await client.query(`
+      ALTER TABLE categories
+      ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
+    `);
+
     // Create products table
     await client.query(`
       CREATE TABLE IF NOT EXISTS products (

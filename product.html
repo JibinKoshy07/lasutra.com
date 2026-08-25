@@ -552,7 +552,7 @@
             </div>
           </div>
           <div class="meta">
-            <span class="category">${product.category || 'Uncategorized'}</span>
+            <span class="category">${product.parent_category ? product.parent_category + ' › ' : ''}${product.category || 'Uncategorized'}</span>
             <h1 class="title">${product.name}</h1>
             <div class="price-row">
               <span class="price">₹${product.price}</span>

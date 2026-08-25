@@ -7,6 +7,7 @@
 - Backend: `backend/server.js`, `backend/db.js`
 
 ## Notable Behaviors
+- **Subcategories**: `categories.parent_id` self-FK, exactly ONE level (backend rejects deeper). A parent's filter includes products of its subcategories (server: `OR category_id IN (SELECT id FROM categories WHERE parent_id = $1)`; client: same expansion in `renderProducts`). Chips render parent first + `› sub` chips when parent/sub is active. Admin renders subs as `Parent › Sub`. Deleting a parent → subs become top-level (ON DELETE SET NULL)
 - **Cart persistence**: localStorage key `lasutra_cart`; index, product, checkout read it; `sessionStorage` key `lasutra_checkout_items` used for BUY NOW flow
 - **Order statuses (ORDER_STATUSES in server.js)**: `['Placed','Processing','Shipped','Out for Delivery','Delivered','Cancelled','Payment Failed','Returned','Refunded']`
 - **Status history**: stored in dedicated table `order_status_history` (separate from `orders`). PUT `/api/admin/orders/:id/status` appends a row. GET `/api/orders/:userId/:orderId` returns `history` (not `status_history`)

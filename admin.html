@@ -907,6 +907,13 @@
             <label>Category Name *</label>
             <input type="text" id="categoryName" placeholder="e.g. Ethnic Wear" required>
           </div>
+          <div class="form-group">
+            <label>Parent Category</label>
+            <select id="categoryParent">
+              <option value="">— Top-level category —</option>
+            </select>
+            <small style="color:#999;display:block;margin-top:6px;">Pick one to make this a subcategory (e.g. Sarees under Ethnic Wear).</small>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" onclick="closeCategoryModal()">Cancel</button>
@@ -1232,31 +1239,44 @@
         return;
       }
 
-      container.innerHTML = `
-        <div class="categories-grid">
-          ${allCategories.map(c => `
+      // hierarchical view: parents as cards with their subcategories nested
+      const parents = allCategories.filter(c => !c.parent_id);
+      const nameOf = (id) => (allCategories.find(c => String(c.id) === String(id)) || {}).name || '';
+      const catCard = (c, label, count) => `
             <div class="category-card">
               <div>
-                <div class="cat-name">${c.name}</div>
-                <div class="cat-count">${c.product_count} product${c.product_count === 1 ? '' : 's'}</div>
+                <div class="cat-name">${label}${c.name}</div>
+                <div class="cat-count">${count} product${count === 1 ? '' : 's'}</div>
               </div>
               <button class="btn-icon danger" onclick="deleteCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')">Delete</button>
-            </div>
-          `).join('')}
-        </div>
-      `;
+            </div>`;
+
+      const cards = [];
+      parents.forEach(p => {
+        const subs = allCategories.filter(c => String(c.parent_id) === String(p.id));
+        cards.push(catCard(p, '', p.total_product_count));
+        subs.forEach(s => cards.push(catCard(s, `${nameOf(s.parent_id)} › `, s.product_count)));
+      });
+
+      container.innerHTML = `<div class="categories-grid">${cards.join('')}</div>`;
     }
 
     function populateCategoryDropdown() {
       const select = document.getElementById('productCategory');
       const current = select.value;
+      // products can sit under any category; subs shown as "Parent › Sub"
+      const nameOf = (id) => (allCategories.find(c => String(c.id) === String(id)) || {}).name || '';
       select.innerHTML = '<option value="">Uncategorized</option>' +
-        allCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        allCategories.map(c => `<option value="${c.id}">${c.parent_id ? nameOf(c.parent_id) + ' › ' : ''}${c.name}</option>`).join('');
       select.value = current;
     }
 
     function openCategoryModal() {
       document.getElementById('categoryName').value = '';
+      // offer only top-level categories as parents (one level of subcategories)
+      const parentSel = document.getElementById('categoryParent');
+      parentSel.innerHTML = '<option value="">— Top-level category —</option>' +
+        allCategories.filter(c => !c.parent_id).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       document.getElementById('categoryModal').classList.add('open');
     }
 
@@ -1267,11 +1287,12 @@
     async function saveCategory(e) {
       e.preventDefault();
       const name = document.getElementById('categoryName').value;
+      const parentId = document.getElementById('categoryParent').value || null;
       try {
         const response = await fetch(`${API_URL}/admin/categories`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name })
+          body: JSON.stringify({ name, parentId })
         });
 
         const data = await response.json();
@@ -1290,7 +1311,11 @@
     }
 
     async function deleteCategory(id, name) {
-      if (!confirm(`Delete category "${name}"? Products in it will become uncategorized.`)) return;
+      const children = allCategories.filter(c => String(c.parent_id) === String(id)).length;
+      const hint = children > 0
+        ? ` Its ${children} subcategor${children === 1 ? 'y' : 'ies'} will become top-level.`
+        : '';
+      if (!confirm(`Delete category "${name}"? Products in it will become uncategorized.${hint}`)) return;
       try {
         const response = await fetch(`${API_URL}/admin/categories/${id}`, { method: 'DELETE' });
         if (response.ok) {

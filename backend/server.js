@@ -550,15 +550,24 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
 
 // ============ PRODUCT & CATEGORY ROUTES ============
 
-// Public: list categories (with product count)
+// Public: list categories (with product count; parent_id supports subcategories)
 app.get('/api/categories', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.name, COUNT(p.id)::int AS product_count
+      SELECT c.id, c.name, c.parent_id,
+             COUNT(p.id)::int AS product_count,
+             COUNT(p.id)::int + COALESCE(SUM(ch.cnt), 0)::int AS total_product_count
       FROM categories c
       LEFT JOIN products p ON p.category_id = c.id
+      LEFT JOIN (
+        SELECT parent_id, COUNT(*)::int AS cnt
+        FROM products pr
+        JOIN categories cc ON cc.id = pr.category_id
+        WHERE cc.parent_id IS NOT NULL
+        GROUP BY parent_id
+      ) ch ON ch.parent_id = c.id
       GROUP BY c.id
-      ORDER BY c.name
+      ORDER BY c.parent_id NULLS FIRST, c.name
     `);
     res.json(result.rows);
   } catch (err) {
@@ -575,7 +584,9 @@ app.get('/api/products', async (req, res) => {
     let where = '';
     if (category) {
       params.push(category);
-      where = 'WHERE p.category_id = $1';
+      // a parent category also matches products filed under its subcategories
+      where = `WHERE p.category_id = $1
+                OR p.category_id IN (SELECT id FROM categories WHERE parent_id = $1)`;
     }
     const result = await pool.query(`
       SELECT p.id, p.name, p.price, p.image, p.description, p.stock, p.created_at,
@@ -598,9 +609,10 @@ app.get('/api/products/:id', async (req, res) => {
     const { id } = req.params;
     const result = await pool.query(`
       SELECT p.id, p.name, p.price, p.image, p.description, p.stock, p.created_at,
-             p.category_id, c.name AS category
+             p.category_id, c.name AS category, pc.name AS parent_category
       FROM products p
       LEFT JOIN categories c ON c.id = p.category_id
+      LEFT JOIN categories pc ON pc.id = c.parent_id
       WHERE p.id = $1
     `, [id]);
 
@@ -687,18 +699,33 @@ app.delete('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// Admin: create category
+// Admin: create category (optionally under a parent → subcategory)
 app.post('/api/admin/categories', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, parentId } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Category name is required' });
     }
 
+    let parent = null;
+    if (parentId) {
+      const parentResult = await pool.query(
+        'SELECT id, parent_id FROM categories WHERE id = $1',
+        [parentId]
+      );
+      parent = parentResult.rows[0];
+      if (!parent) {
+        return res.status(400).json({ error: 'Parent category not found' });
+      }
+      if (parent.parent_id) {
+        return res.status(400).json({ error: 'Only one level of subcategories is supported' });
+      }
+    }
+
     const result = await pool.query(
-      'INSERT INTO categories (name) VALUES ($1) RETURNING *',
-      [name.trim()]
+      'INSERT INTO categories (name, parent_id) VALUES ($1, $2) RETURNING *',
+      [name.trim(), parent ? parent.id : null]
     );
     res.status(201).json({ message: 'Category created', category: result.rows[0] });
   } catch (err) {

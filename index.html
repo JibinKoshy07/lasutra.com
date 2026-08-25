@@ -305,6 +305,13 @@
       transition: all 0.3s;
     }
 
+    .filter-chip.sub-chip {
+      background: #faf6f3;
+      border-style: dashed;
+      font-size: 13px;
+      padding: 6px 16px;
+    }
+
     .filter-chip:hover {
       border-color: #e94560;
       color: #fff;
@@ -1381,6 +1388,7 @@
     ];
 
     let products = [];
+    let storeCategories = [];
     let activeCategory = 'all';
 
     // Load products and categories from the backend API
@@ -1407,17 +1415,31 @@
 
     function renderCategoryFilters(categories) {
       const container = document.getElementById('categoryFilters');
-      const chips = [{ id: 'all', name: 'All' }, ...categories];
+
+      // split flat list into parents + children (one level of subcategories)
+      storeCategories = categories;
+      const parents = categories.filter(c => !c.parent_id);
+      const childrenOf = (id) => categories.filter(c => String(c.parent_id) === String(id));
+
+      const chips = [{ id: 'all', name: 'All' }];
+      parents.forEach(p => {
+        chips.push(p);
+        // expose sub-chips while this parent (or one of its subs) is active
+        const activeSub = childrenOf(p.id).some(s => String(s.id) === String(activeCategory));
+        if (String(p.id) === String(activeCategory) || activeSub) {
+          childrenOf(p.id).forEach(sub => chips.push(sub));
+        }
+      });
+
       container.innerHTML = chips.map(c => `
-        <button class="filter-chip ${String(c.id) === String(activeCategory) ? 'active' : ''}"
-                data-category="${c.id}">${c.name}</button>
+        <button class="filter-chip ${c.parent_id ? 'sub-chip' : ''} ${String(c.id) === String(activeCategory) ? 'active' : ''}"
+                data-category="${c.id}">${c.parent_id ? '› ' + c.name : c.name}</button>
       `).join('');
 
       container.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
           activeCategory = chip.dataset.category;
-          container.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
+          renderCategoryFilters(categories);
           renderProducts();
         });
       });
@@ -1448,9 +1470,15 @@
 
     // Render Products
     function renderProducts() {
+      // selecting a parent category also shows products of its subcategories
+      const matchIds = new Set([String(activeCategory)]);
+      storeCategories
+        .filter(c => String(c.parent_id) === String(activeCategory))
+        .forEach(c => matchIds.add(String(c.id)));
+
       const visible = activeCategory === 'all'
         ? products
-        : products.filter(p => String(p.category_id) === activeCategory || p.category === activeCategory);
+        : products.filter(p => matchIds.has(String(p.category_id)) || p.category === activeCategory);
 
       if (visible.length === 0) {
         productsGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #a0a0b0; padding: 60px 0;">No products in this category yet.</p>';
