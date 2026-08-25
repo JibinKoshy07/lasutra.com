@@ -124,9 +124,21 @@
 
   <script>
     const API_URL = 'http://localhost:3000/api';
-    const user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
+    let user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
     const checkoutItems = JSON.parse(sessionStorage.getItem('lasutra_checkout_items') || '[]');
     const cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
+
+    // Validate the stored user still exists; stale sessions (e.g. after a DB reset) get bounced to login
+    async function validateUser() {
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_URL}/users/${user.id}`);
+        if (res.status === 404 || res.status === 400) {
+          localStorage.removeItem('lasutra_user');
+          user = null;
+        }
+      } catch (_) { /* network hiccup — treat as still logged in */ }
+    }
 
     // read either the buy-now set or the whole cart (if both, prefer buy-now)
     const items = checkoutItems.length > 0 ? checkoutItems : cart;
@@ -350,7 +362,10 @@
       }
     }
 
-    render();
+    (async () => {
+      await validateUser();
+      render();
+    })();
   </script>
 </body>
 </html>

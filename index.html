@@ -1632,13 +1632,20 @@
     const loginMessage = document.getElementById('loginMessage');
     const registerMessage = document.getElementById('registerMessage');
 
-    // Load current user from sessionStorage
-    function loadCurrentUser() {
+    // Load current user; validate it still exists (stale sessions after DB resets get bounced)
+    async function loadCurrentUser() {
       const stored = localStorage.getItem('lasutra_user');
-      if (stored) {
-        currentUser = JSON.parse(stored);
-        updateAuthUI();
-      }
+      if (!stored) return;
+      currentUser = JSON.parse(stored);
+      try {
+        const res = await fetch(`${API_URL}/users/${currentUser.id}`);
+        if (res.status === 404 || res.status === 400) {
+          currentUser = null;
+          saveCurrentUser();
+          return;
+        }
+      } catch (_) { /* backend unreachable — keep local session */ }
+      updateAuthUI();
     }
 
     // Save current user to localStorage

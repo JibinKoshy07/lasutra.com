@@ -141,9 +141,21 @@
 
   <script>
     const API_URL = 'http://localhost:3000/api';
-    const user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
+    let user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
     const TIMELINE = ['Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
     const BLOCKED = ['Cancelled', 'Payment Failed', 'Returned', 'Refunded'];
+
+    // Stale session guard (e.g. DB reset): bounce to login if the stored id no longer exists
+    async function validateUser() {
+      if (!user) return;
+      try {
+        const res = await fetch(`${API_URL}/users/${user.id}`);
+        if (res.status === 404 || res.status === 400) {
+          localStorage.removeItem('lasutra_user');
+          user = null;
+        }
+      } catch (_) { }
+    }
 
     function header() {
       const el = document.getElementById('headerActions');
@@ -165,6 +177,7 @@
     }
 
     async function init() {
+      await validateUser();
       header();
       if (!user) {
         document.getElementById('ordersContainer').innerHTML = '<div class="empty"><h2>Please Login</h2><p>You need to be logged in to view your orders.</p><a href="index.html">Go to Shop</a></div>';
