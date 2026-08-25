@@ -2,8 +2,8 @@
 
 ## Stack
 - Express + pg (PostgreSQL), plain HTML/CSS/JS storefront & admin
-- Frontend: `index.html`, `product.html`, `checkout.html`, `orders.html` (each references `const API_URL = 'http://localhost:3000/api'`)
-- Admin panel: `admin.html` (also hardcodes the same API_URL)
+- Frontend: `index.html`, `product.html`, `checkout.html`, `orders.html` — API URL is auto-detected once for all pages: `locations.hostname ∈ {localhost,127.0.0.1} → http://localhost:3000/api`, else `location.origin + /api`. NEVER hardcode a sandbox/work host URL (e.g. `work-*.prod-runtime.all-hands.dev`) — a hardcoded URL earlier broke the user's local dev whenever they pulled sandbox-tuned code
+- Admin panel: `admin.html` — same auto-detect as above
 - Backend: `backend/server.js`, `backend/db.js`
 
 ## Notable Behaviors

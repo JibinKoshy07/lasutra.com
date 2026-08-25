@@ -472,7 +472,8 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const API_URL = 'http://localhost:3000/api';
+    const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
+    const API_URL = LOCAL_HOSTS.has(location.hostname) ? 'http://localhost:3000/api' : location.origin + '/api';
     const toastEl = document.getElementById('toast');
     const cartBadge = document.getElementById('cartBadge');
 

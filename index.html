@@ -1614,7 +1614,9 @@
     // ============ AUTH SYSTEM (Node.js + PostgreSQL) ============
     
     // API Base URL - change this to your server URL
-    const API_URL = 'https://work-2-bqyeyvrnuaqfptjr.prod-runtime.all-hands.dev/api';
+    // pick backend: same host when served by the sandbox proxy, else localhost for local dev/static servers
+    const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
+    const API_URL = LOCAL_HOSTS.has(location.hostname) ? 'http://localhost:3000/api' : `${location.origin}/api`;
     
     // User state
     let currentUser = null;

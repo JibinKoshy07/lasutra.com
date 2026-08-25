@@ -123,7 +123,8 @@
   <main class="container" id="checkout"></main>
 
   <script>
-    const API_URL = 'http://localhost:3000/api';
+    const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1']);
+    const API_URL = LOCAL_HOSTS.has(location.hostname) ? 'http://localhost:3000/api' : location.origin + '/api';
     let user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
     const checkoutItems = JSON.parse(sessionStorage.getItem('lasutra_checkout_items') || '[]');
     const cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
