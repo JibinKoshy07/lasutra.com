@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | LaSutra Boutique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --accent: #e0455c;
+      --bg: #faf7f4;
+      --surface: #ffffff;
+      --ink: #1d1d23;
+      --ink-soft: #6b6b71;
+      --border: #ece4df;
+    }
+
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); }
+
+    .header {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; color: var(--accent); text-decoration: none; }
+    .nav a { color: var(--ink-soft); text-decoration: none; }
+    .nav a:hover { color: var(--ink); }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+    .layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; align-items: start; }
+
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: 0 12px 30px rgba(29,29,35,0.04);
+    }
+
+    .section-card h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+
+    /* address form grid */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row.three { grid-template-columns: repeat(3, 1fr); }
+    .form-row.single { grid-template-columns: 1fr; }
+
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px; }
+    input, select {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--border); border-radius: 9px;
+      background: #fff; color: var(--ink); font-size: 0.95rem;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+
+    /* summary */
+    .summary-line { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; }
+    .divider { border-bottom: 1px dashed var(--border); }
+    .total-line { font-weight: 700; font-size: 1.1rem; padding-top: 12px; }
+    .muted { color: var(--ink-soft); }
+
+    .item { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .item img { width: 72px; height: 80px; object-fit: cover; border-radius: 10px; }
+    .item-info { flex: 1; }
+    .item-name { font-weight: 600; }
+    .item-qty { color: var(--ink-soft); font-size: 0.86rem; }
+    .item-total { font-weight: 700; color: var(--ink); }
+    .item-size { color: var(--ink-soft); font-size: 0.8rem; }
+
+    /* payment box */
+    .payment-methods { display: flex; flex-direction: column; gap: 10px; }
+    .method {
+      display: flex; align-items: flex-start; gap: 12px; padding: 13px 14px;
+      border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; background: #fff;
+    }
+    .method.selected { border-color: var(--accent); background: rgba(224,69,92,0.04); }
+    .method input { margin-top: 3px; accent-color: var(--accent); width: auto; }
+    .method-title { font-weight: 700; display: block; }
+    .method-desc { color: var(--ink-soft); font-size: 0.82rem; margin-top: 2px; }
+
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--accent); color: #fff;
+      font-size: 0.98rem; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; margin-top: 22px; text-transform: uppercase;
+    }
+    .btn:hover { background: #c93a4f; }
+    .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+    .secondary-note { font-size: 0.8rem; color: var(--ink-soft); margin-top: 10px; text-align: center; }
+
+    .error { color: #d32f2f; font-size: 0.85rem; margin-top: 10px; }
+
+    .success-wrap { text-align: center; padding: 80px 20px; }
+    .success-wrap h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 12px; }
+    .success-wrap p { color: var(--ink-soft); margin-bottom: 24px; }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.three { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo">LaSutra</a>
+    <div class="nav"><a href="index.html">Home</a>&nbsp;&nbsp;<a href="orders.html">My Orders</a></div>
+  </header>
+
+  <main class="container" id="checkout"></main>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    const user = JSON.parse(localStorage.getItem('lasutra_user') || 'null');
+    const checkoutItems = JSON.parse(sessionStorage.getItem('lasutra_checkout_items') || '[]');
+    const cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
+
+    // read either the buy-now set or the whole cart (if both, prefer buy-now)
+    const items = checkoutItems.length > 0 ? checkoutItems : cart;
+
+    let paymentMethod = 'placeholder';
+
+    function cartSummary() {
+      return cart.reduce((s, i) => s + i.quantity, 0);
+    }
+
+    function render() {
+      if (!user) {
+        document.getElementById('checkout').innerHTML = `
+          <div class="success-wrap">
+            <h1>Please log in first</h1>
+            <p>You need to be signed in to place an order.</p>
+            <button class="btn" style="max-width: 320px;" onclick="location.href='index.html'">Go to shop</button>
+          </div>`;
+        return;
+      }
+      if (items.length === 0) {
+        document.getElementById('checkout').innerHTML = `
+          <div class="success-wrap">
+            <h1>Your bag is empty</h1>
+            <p>Add something first, then come back.</p>
+            <button class="btn" style="max-width: 320px;" onclick="location.href='index.html#products'">Browse products</button>
+          </div>`;
+        return;
+      }
+
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      const shipping = subtotal > 3000 ? 0 : 99;
+      const discount = Math.round(subtotal * 0.05);
+      const total = subtotal + shipping - discount;
+
+      document.getElementById('checkout').innerHTML = `
+        <div class="layout">
+          <div>
+            <div class="section-card">
+              <h2>Delivery Address</h2>
+              <form id="addressForm">
+                <div class="form-row single form-group">
+                  <label>Full Name *</label>
+                  <input id="fullName" value="${user.name || ''}" required>
+                </div>
+                <div class="form-row form-group">
+                  <div>
+                    <label>House / Flat / Building No. *</label>
+                    <input id="house" required>
+                  </div>
+                  <div>
+                    <label>Street / Area *</label>
+                    <input id="street" required>
+                  </div>
+                </div>
+                <div class="form-row form-group">
+                  <div>
+                    <label>Landmark</label>
+                    <input id="landmark">
+                  </div>
+                  <div>
+                    <label>City *</label>
+                    <input id="city" required>
+                  </div>
+                </div>
+                <div class="form-row three form-group">
+                  <div>
+                    <label>State *</label>
+                    <input id="state" value="${user.state || ''}" required>
+                  </div>
+                  <div>
+                    <label>Pincode / ZIP *</label>
+                    <input id="pinCode" value="${user.pinCode || ''}" required>
+                  </div>
+                  <div>
+                    <label>Country *</label>
+                    <input id="country" value="${user.country || 'India'}" required>
+                  </div>
+                </div>
+                <div class="form-row single form-group">
+                  <label>Phone Number *</label>
+                  <input id="phone" pattern="[0-9+\\-\\s]{7,15}" required>
+                </div>
+              </form>
+            </div>
+
+            <div class="section-card" style="margin-top: 24px">
+              <h2>Payment Method</h2>
+              <div class="payment-methods">
+                <label class="method selected">
+                  <input type="radio" name="pay" value="placeholder" checked>
+                  <span>
+                    <span class="method-title">Dummy / Offline</span>
+                    <span class="method-desc">Instant order for testing (placeholder until the real gateway goes live)</span>
+                  </span>
+                </label>
+                <label class="method disabled" style="opacity: 0.5; cursor: not-allowed">
+                  <input type="radio" name="pay" value="card" disabled>
+                  <span>
+                    <span class="method-title">Card (Coming soon)</span>
+                    <span class="method-desc">Stripe / Razorpay will be wired in here — the flow above won't change</span>
+                  </span>
+                </label>
+                <label class="method disabled" style="opacity: 0.5; cursor: not-allowed">
+                  <input type="radio" name="pay" value="upi" disabled>
+                  <span>
+                    <span class="method-title">UPI (Coming soon)</span>
+                    <span class="method-desc">After the placeholder completes, the gateway hooks into <code>paymentMethod</code>/<code>paymentStatus</code></span>
+                  </span>
+                </label>
+              </div>
+              <div class="secondary-note">When the real gateway is live, the order is created only after payment succeeds. For now we simulate success with a placeholder.</div>
+
+              <button class="btn" id="placeBtn">Place Order – ₹${total}</button>
+              <div id="error" class="error"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <h2>Order Summary</h2>
+            ${items.map(i => `
+              <div class="item">
+                <img src="${i.image}" alt="${i.name}">
+                <div class="item-info">
+                  <div class="item-name">${i.name}</div>
+                  ${i.size ? `<div class="item-size">Size: ${i.size}</div>` : ''}
+                  <div class="item-qty">Qty: ${i.quantity}</div>
+                </div>
+                <div class="item-total">₹${i.price * i.quantity}</div>
+              </div>
+            `).join('')}
+            <div class="summary-line"><span class="muted">Subtotal</span><span>₹${subtotal}</span></div>
+            <div class="summary-line"><span class="muted">Shipping</span><span>${shipping === 0 ? 'FREE' : '₹' + shipping}</span></div>
+            <div class="summary-line"><span class="muted">Discount (5%)</span><span>−₹${discount}</span></div>
+            <div class="divider"></div>
+            <div class="summary-line total-line"><span>Total</span><span>₹${total}</span></div>
+          </div>
+        </div>
+      `;
+
+      // payment placeholder selection
+      document.querySelectorAll('.method input[type="radio"]').forEach(r => {
+        r.addEventListener('change', (e) => {
+          paymentMethod = e.target.value;
+          document.querySelectorAll('.method').forEach(m => m.classList.remove('selected'));
+          e.target.closest('.method').classList.add('selected');
+        });
+      });
+
+      document.getElementById('placeBtn').addEventListener('click', placeOrder);
+    }
+
+    async function placeOrder() {
+      const form = document.getElementById('addressForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const btn = document.getElementById('placeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Placing order…';
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = '';
+
+      const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
+      const shipping = subtotal > 3000 ? 0 : 99;
+      const discount = Math.round(subtotal * 0.05);
+      const total = subtotal + shipping - discount;
+
+      const address = {
+        fullName: document.getElementById('fullName').value,
+        house: document.getElementById('house').value,
+        street: document.getElementById('street').value,
+        landmark: document.getElementById('landmark').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        pinCode: document.getElementById('pinCode').value,
+        country: document.getElementById('country').value,
+        phone: document.getElementById('phone').value
+      };
+
+      const payload = {
+        userId: user.id,
+        items: items.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+        totalAmount: total,
+        address,
+        paymentMethod
+      };
+
+      try {
+        const res = await fetch(`${API_URL}/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Order failed');
+
+        // clear whichever source we used
+        if (checkoutItems.length > 0) {
+          sessionStorage.removeItem('lasutra_checkout_items');
+          // remove purchased items out of the bag (Buy Now mutates bag only on success)
+          const cartAfter = cart.filter(c => !items.some(i => i.id === c.id && i.size === (c.size || null)));
+          localStorage.setItem('lasutra_cart', JSON.stringify(cartAfter));
+        } else {
+          localStorage.setItem('lasutra_cart', '[]');
+        }
+
+        document.getElementById('checkout').innerHTML = `
+          <div class="success-wrap">
+            <h1>Order placed successfully!</h1>
+            <p>Order #${data.orderId} · Total ₹${total}</p>
+            <p>${user.name}, thank you for shopping with us.</p>
+            <button class="btn" style="max-width: 300px;" onclick="location.href='orders.html'">Track your order</button>
+          </div>`;
+      } catch (err) {
+        errorEl.textContent = err.message;
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

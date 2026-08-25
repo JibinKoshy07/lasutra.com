@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details | LaSutra Boutique</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --accent: #e0455c;
+      --bg: #faf7f4;
+      --surface: #ffffff;
+      --ink: #1d1d23;
+      --ink-soft: #6b6b71;
+      --border: #ece4df;
+      --success: #2e7d5b;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .nav {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav a {
+      color: var(--ink-soft);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      color: var(--ink);
+    }
+
+    .cart-count {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 20px 40px rgba(29, 29, 35, 0.05);
+    }
+
+    .gallery-main {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #f2ede9;
+      aspect-ratio: 1 / 1;
+    }
+
+    .gallery-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .gallery-thumbs {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .gallery-thumbs button {
+      border: 2px solid transparent;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 72px;
+      height: 72px;
+      background: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+
+    .gallery-thumbs button.active {
+      border-color: var(--accent);
+    }
+
+    .gallery-thumbs img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .category {
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    h1.title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .price {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .mrp {
+      text-decoration: line-through;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+
+    .off-badge {
+      background: rgba(224, 69, 92, 0.1);
+      color: var(--accent);
+      padding: 4px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      border-radius: 999px;
+    }
+
+    .desc {
+      color: var(--ink-soft);
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+
+    /* Variant chooser */
+    .variant-label {
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .sizes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .size-chip {
+      min-width: 44px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .size-chip:hover {
+      border-color: var(--accent);
+    }
+
+    .size-chip.selected {
+      border-color: var(--accent);
+      background: rgba(224, 69, 92, 0.08);
+      color: var(--accent);
+    }
+
+    /* Quantity */
+    .qty {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .qty button {
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: #f6f2ef;
+      color: var(--ink);
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .qty button:hover {
+      background: #ece5e0;
+    }
+
+    .qty span {
+      min-width: 26px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Stock */
+    .stock {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .stock.low {
+      color: #b05164;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .btn-cart {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .btn-cart:hover {
+      background: #2a2a33;
+    }
+
+    .btn-buy {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-buy:hover {
+      background: #c93a4f;
+    }
+
+    .btn[disabled] {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 500;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .notify-link {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .related-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      margin: 48px 0 20px;
+    }
+
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .related-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+
+    .related-card:hover {
+      box-shadow: 0 12px 24px rgba(29, 29, 35, 0.08);
+    }
+
+    .related-card img {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      display: block;
+    }
+
+    .related-info {
+      padding: 14px;
+    }
+
+    .related-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .related-price {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--ink-soft);
+      font-size: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 22px;
+      }
+      .header {
+        padding: 16px 20px;
+      }
+      .actions {
+        flex-direction: column;
+      }
+      h1.title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo">LaSutra</a>
+    <nav class="nav">
+      <a href="index.html">Home</a>
+      <a href="index.html#products">Shop</a>
+      <a href="orders.html">My Orders</a>
+    </nav>
+    <button id="cartBadge" class="cart-count">0</button>
+  </header>
+
+  <main class="container" id="content"></main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+    const toastEl = document.getElementById('toast');
+    const cartBadge = document.getElementById('cartBadge');
+
+    let product = null;
+    let selectedSize = null;
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2400);
+    }
+
+    function cartSummary() {
+      const cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
+      return cart.reduce((s, i) => s + i.quantity, 0);
+    }
+
+    function saveToCart(item) {
+      const cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
+      const existing = cart.find(i => i.id === item.id && i.size === item.size);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        cart.push(item);
+      }
+      localStorage.setItem('lasutra_cart', JSON.stringify(cart));
+      cartBadge.textContent = cartSummary();
+      return existing ? existing.quantity : item.quantity;
+    }
+
+    function notifyCart(msg) {
+      showToast(msg);
+      cartBadge.textContent = cartSummary();
+    }
+
+    function getNextSize(sizes) {
+      if (selectedSize) return selectedSize;
+      return sizes[Math.floor(sizes.length / 2)] || null;
+    }
+
+    async function loadProduct() {
+      const id = new URLSearchParams(location.search).get('id');
+      if (!id) {
+        document.getElementById('content').innerHTML = '<div class="empty">No product selected.</div>';
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/products/${id}`);
+      if (!res.ok) {
+        document.getElementById('content').innerHTML = '<div class="empty">Product not found.</div>';
+        return;
+      }
+      product = await res.json();
+      render();
+      loadRelated();
+    }
+
+    function render() {
+      const inStock = product.stock > 0;
+      const mrp = Math.round(product.price * 1.25);
+      const discount = Math.max(0, Math.round((1 - product.price / mrp) * 100));
+      const sizes = ['XS', 'S', 'M', 'L', 'XL'];
+      selectedSize = getNextSize(sizes);
+
+      document.title = `${product.name} | LaSutra Boutique`;
+      document.getElementById('content').innerHTML = `
+        <div class="layout">
+          <div>
+            <div class="gallery-main">
+              <img id="hero" src="${product.image}" alt="${product.name}">
+            </div>
+            <div class="gallery-thumbs">
+              <button class="active"><img src="${product.image}" alt="${product.name}" data-src="${product.image}"></button>
+              <button><img src="${product.image}" alt="${product.name}" data-src="${product.image}"></button>
+              <button><img src="${product.image}" alt="${product.name}" data-src="${product.image}"></button>
+            </div>
+          </div>
+          <div class="meta">
+            <span class="category">${product.category || 'Uncategorized'}</span>
+            <h1 class="title">${product.name}</h1>
+            <div class="price-row">
+              <span class="price">₹${product.price}</span>
+              <span class="mrp">₹${mrp}</span>
+              <span class="off-badge">${discount}% OFF</span>
+            </div>
+            <p class="desc">${product.description || 'No description available.'}</p>
+            <div>
+              <div class="variant-label">Size</div>
+              <div class="sizes">
+                ${sizes.map(s => `<button class="size-chip ${selectedSize === s ? 'selected' : ''}" data-size="${s}">${s}</button>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="variant-label">Quantity</div>
+              <div class="qty">
+                <button data-d="−">−</button>
+                <span id="qtyVal">1</span>
+                <button data-d="+">+</button>
+              </div>
+            </div>
+            <span class="stock ${product.stock <= 4 && product.stock > 0 ? 'low' : ''}">
+              ${inStock ? (product.stock <= 4 ? 'Only ' + product.stock + ' left in stock' : product.stock + ' in stock') : 'Out of stock'}
+            </span>
+            ${!inStock ? '<button class="notify-link" onclick="notifyLink()">Notify me when back</button>' : ''}
+            <div class="actions">
+              <button class="btn btn-cart" ${inStock ? '' : 'disabled'} onclick="addCart()">ADD TO CART</button>
+              <button class="btn btn-buy" ${inStock ? '' : 'disabled'} onclick="buyNow()">BUY NOW</button>
+            </div>
+          </div>
+        </div>
+        <h2 class="related-title">More like this</h2>
+        <div class="related-grid" id="relatedGrid"></div>
+      `;
+
+      // bind interactions
+      document.querySelector('.gallery-thumbs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        document.querySelector('#hero').src = btn.dataset.src || product.image;
+        document.querySelectorAll('.gallery-thumbs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+
+      document.querySelectorAll('.size-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedSize = btn.dataset.size;
+          document.querySelectorAll('.size-chip').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+        });
+      });
+
+      document.querySelector('.qty button[data-d="−"]').onclick = () => {
+        const v = Math.max(1, parseInt(document.getElementById('qtyVal').textContent) - 1);
+        document.getElementById('qtyVal').textContent = v;
+      };
+      document.querySelector('.qty button[data-d="+"]').onclick = () => {
+        const v = Math.min(10, parseInt(document.getElementById('qtyVal').textContent) + 1);
+        document.getElementById('qtyVal').textContent = v;
+      };
+    }
+
+    function notifyLink() {
+      showToast('We\'ll let you know when this is back in stock');
+    }
+
+    function addCart() {
+      const item = { id: product.id, name: product.name, price: product.price, image: product.image, size: selectedSize, quantity: parseInt(document.getElementById('qtyVal').textContent) };
+      saveToCart(item);
+      notifyCart(`${product.name} added to bag`);
+    }
+
+    function buyNow() {
+      const cart = [];
+      cart.push({ id: product.id, name: product.name, price: product.price, image: product.image, size: selectedSize, quantity: parseInt(document.getElementById('qtyVal').textContent) });
+      // mark BUY NOW intent: checkout reads this raw set and does not persist to main cart until success
+      sessionStorage.setItem('lasutra_checkout_items', JSON.stringify(cart));
+      location.href = 'checkout.html';
+    }
+
+    async function loadRelated() {
+      const res = await fetch(`${API_URL}/products?category=${product.category_id}`);
+      if (!res.ok) return;
+      const items = await res.json();
+      const grid = document.getElementById('relatedGrid');
+      grid.innerHTML = items.filter(i => i.id !== product.id).slice(0, 4).map(i => `
+        <div class="related-card" onclick="location.href='product.html?id=${i.id}'">
+          <img src="${i.image}" alt="${i.name}">
+          <div class="related-info">
+            <div class="related-name">${i.name}</div>
+            <div class="related-price">₹${i.price}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    cartBadge.textContent = cartSummary();
+    loadProduct();
+  </script>
+</body>
+</html>

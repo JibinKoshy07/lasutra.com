@@ -32,6 +32,9 @@ function checkRateLimit(key) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Order stage constants used across the API
+const ORDER_STATUSES = ['Placed', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Payment Failed', 'Returned', 'Refunded'];
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -235,7 +238,7 @@ app.put('/api/users/:id/address', async (req, res) => {
 // Create order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { userId, items, totalAmount, address } = req.body;
+    const { userId, items, totalAmount, address, paymentMethod } = req.body;
     
     if (!userId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Invalid order data' });
@@ -248,24 +251,38 @@ app.post('/api/orders', async (req, res) => {
       
       // Get user details for address
       const userResult = await client.query(
-        'SELECT name, email, country, state, pin_code FROM users WHERE id = $1',
+        'SELECT name, email FROM users WHERE id = $1',
         [userId]
       );
       
       const user = userResult.rows[0];
-      const shippingAddress = {
-        country: (address && address.country) ? address.country : user.country,
-        state: (address && address.state) ? address.state : user.state,
-        pinCode: (address && address.pinCode) ? address.pinCode : user.pin_code
-      };
       
-      // Create order with shipping address
+      // Snapshot of the currently chosen shipping address (JSONB)
+      const shippingAddress = address && address.fullName ? {
+        fullName: address.fullName || null,
+        phone: address.phone || null,
+        house: address.house || null,
+        street: address.street || null,
+        landmark: address.landmark || null,
+        city: address.city || null,
+        state: address.state || null,
+        pinCode: address.pinCode || null,
+        country: address.country || null
+      } : null;
+      
+      // Create order with payment placeholder and full address snapshot
       const orderResult = await client.query(
-        'INSERT INTO orders (user_id, total_amount, shipping_country, shipping_state, shipping_pin_code) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-        [userId, totalAmount, shippingAddress.country, shippingAddress.state, shippingAddress.pinCode]
+        'INSERT INTO orders (user_id, total_amount, status, payment_method, payment_status, shipping_address) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [userId, totalAmount, 'Placed', paymentMethod || 'Offline Placeholder', 'Pending', shippingAddress ? JSON.stringify(shippingAddress) : null]
       );
       
       const orderId = orderResult.rows[0].id;
+      
+      // Record the first status entry for the timeline
+      await client.query(
+        'INSERT INTO order_status_history (order_id, status) VALUES ($1, $2)',
+        [orderId, 'Placed']
+      );
       
       // Add order items
       for (const item of items) {
@@ -283,7 +300,7 @@ app.post('/api/orders', async (req, res) => {
         orderId,
         items,
         totalAmount,
-        shippingAddress
+        shippingAddress || {}
       );
       
       sendAdminNotification(
@@ -291,7 +308,7 @@ app.post('/api/orders', async (req, res) => {
         orderId,
         items,
         totalAmount,
-        shippingAddress
+        shippingAddress || {}
       );
       
       res.status(201).json({
@@ -316,13 +333,13 @@ app.get('/api/orders/:userId', async (req, res) => {
     const { userId } = req.params;
     
     const ordersResult = await pool.query(
-      'SELECT id, total_amount, status, created_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
+      'SELECT id, total_amount, status, payment_method, payment_status, shipping_address, created_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC',
       [userId]
     );
     
     const orders = await Promise.all(ordersResult.rows.map(async (order) => {
       const itemsResult = await pool.query(
-        'SELECT product_name, product_price, quantity FROM order_items WHERE order_id = $1',
+        'SELECT product_id, product_name, product_price, quantity FROM order_items WHERE order_id = $1',
         [order.id]
       );
       
@@ -335,6 +352,46 @@ app.get('/api/orders/:userId', async (req, res) => {
     res.json(orders);
   } catch (err) {
     console.error('Get orders error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get single order detail + status history (user must own the order)
+app.get('/api/orders/:userId/:orderId', async (req, res) => {
+  try {
+    const { userId, orderId } = req.params;
+    
+    const orderResult = await pool.query(
+      'SELECT id, user_id, total_amount, status, payment_method, payment_status, shipping_address, created_at FROM orders WHERE id = $1',
+      [orderId]
+    );
+    
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const order = orderResult.rows[0];
+    if (parseInt(userId) !== order.user_id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    const itemsResult = await pool.query(
+      'SELECT product_id, product_name, product_price, quantity FROM order_items WHERE order_id = $1',
+      [orderId]
+    );
+    
+    const historyResult = await pool.query(
+      'SELECT status, changed_at FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC, id ASC',
+      [orderId]
+    );
+    
+    res.json({
+      ...order,
+      items: itemsResult.rows,
+      history: historyResult.rows
+    });
+  } catch (err) {
+    console.error('Get order detail error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -390,8 +447,8 @@ app.get('/api/admin/orders', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        o.id, o.total_amount, o.status, o.created_at,
-        o.shipping_country, o.shipping_state, o.shipping_pin_code,
+        o.id, o.total_amount, o.status, o.payment_method, o.payment_status,
+        o.shipping_address, o.created_at,
         u.name as user_name, u.email as user_email
       FROM orders o
       JOIN users u ON o.user_id = u.id
@@ -401,7 +458,7 @@ app.get('/api/admin/orders', async (req, res) => {
     // Get items for each order
     const orders = await Promise.all(result.rows.map(async (order) => {
       const itemsResult = await pool.query(
-        'SELECT product_name, product_price, quantity FROM order_items WHERE order_id = $1',
+        'SELECT product_id, product_name, product_price, quantity FROM order_items WHERE order_id = $1',
         [order.id]
       );
       return {
@@ -423,8 +480,7 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     
-    const validStatuses = ['pending', 'in_progress', 'shipped', 'delivered'];
-    if (!validStatuses.includes(status)) {
+    if (!ORDER_STATUSES.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
     
@@ -439,6 +495,12 @@ app.put('/api/admin/orders/:id/status', async (req, res) => {
     }
     
     const userId = orderResult.rows[0].user_id;
+    
+    // Record history entry only when the status actually changes
+    await pool.query(
+      'INSERT INTO order_status_history (order_id, status) VALUES ($1, $2)',
+      [id, status]
+    );
     
     // Update status
     await pool.query(
@@ -521,6 +583,28 @@ app.get('/api/products', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Get products error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Public: get one product for the details page
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(`
+      SELECT p.id, p.name, p.price, p.image, p.description, p.stock, p.created_at,
+             p.category_id, c.name AS category
+      FROM products p
+      LEFT JOIN categories c ON c.id = p.category_id
+      WHERE p.id = $1
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Get product error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -37,29 +37,35 @@ const initDatabase = async () => {
       // Columns might already exist, ignore
     }
     
-    // Create orders table with status
+    // Create orders table with address/status history/payment placeholders
     await client.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         total_amount DECIMAL(10, 2) NOT NULL,
-        status VARCHAR(50) DEFAULT 'pending',
-        shipping_country VARCHAR(255),
-        shipping_state VARCHAR(255),
-        shipping_pin_code VARCHAR(20),
+        status VARCHAR(50) DEFAULT 'Placed',
+        payment_method VARCHAR(50),
+        payment_status VARCHAR(50) DEFAULT 'Pending',
+        shipping_address JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
-    // Add status column if not exists
-    try {
-      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'pending'`);
-      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_country VARCHAR(255)`);
-      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(255)`);
-      await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_pin_code VARCHAR(20)`);
-    } catch (e) {
-      // Columns might already exist
-    }
+
+    // Migrate old columns/shape if needed (runs on existing tables)
+    await client.query(`ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'Placed'`);
+    await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)`);
+    await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'Pending'`);
+    await client.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_address JSONB`);
+
+    // Status history per order: powers the user's tracking timeline
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS order_status_history (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+        status VARCHAR(50) NOT NULL,
+        changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     // Create admins table
     await client.query(`

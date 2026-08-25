@@ -1423,8 +1423,8 @@
       });
     }
 
-    // Cart State
-    let cart = [];
+    // Cart State (persisted so the checkout page can pick it up)
+    let cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
 
     // DOM Elements
     const productsGrid = document.getElementById('productsGrid');
@@ -1436,6 +1436,15 @@
     const cartItems = document.getElementById('cartItems');
     const cartSubtotal = document.getElementById('cartSubtotal');
     const checkoutBtn = document.getElementById('checkoutBtn');
+
+    // Open product details page — click anywhere on the card except its Add to Cart button
+    function openProductDetails(e) {
+      if (e.target.closest('.add-to-cart')) return;
+      const card = e.currentTarget;
+      const btn = card.querySelector('.add-to-cart');
+      const id = btn ? btn.dataset.id : null;
+      if (id) location.href = `product.html?id=${id}`;
+    }
 
     // Render Products
     function renderProducts() {
@@ -1461,6 +1470,12 @@
           </div>
         </div>
       `).join('');
+
+      // Clicks: image or anywhere in card → detail page (the button itself bypasses)
+      document.querySelectorAll('.product-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', openProductDetails);
+      });
 
       // Add event listeners
       document.querySelectorAll('.add-to-cart').forEach(btn => {
@@ -1552,6 +1567,9 @@
       // Update subtotal
       const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       cartSubtotal.textContent = `₹${subtotal}`;
+
+      // Persist so the checkout page has the latest bag
+      localStorage.setItem('lasutra_cart', JSON.stringify(cart));
     }
 
     // Decrease Quantity
@@ -1596,7 +1614,7 @@
     // ============ AUTH SYSTEM (Node.js + PostgreSQL) ============
     
     // API Base URL - change this to your server URL
-    const API_URL = 'http://localhost:3000/api';
+    const API_URL = 'https://work-2-bqyeyvrnuaqfptjr.prod-runtime.all-hands.dev/api';
     
     // User state
     let currentUser = null;
@@ -1976,8 +1994,8 @@
     checkoutBtn.addEventListener('click', async () => {
       if (cart.length > 0) {
         if (currentUser) {
-          // Open address modal for delivery address
-          openAddressModal();
+          // Run the structured-address checkout page; it's where the order is created
+          window.location.href = 'checkout.html';
         } else {
           openAuth();
         }
