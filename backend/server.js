@@ -256,6 +256,11 @@ app.post('/api/orders', async (req, res) => {
       );
       
       const user = userResult.rows[0];
+
+      if (!user) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'User not found. Please log out and log in again.' });
+      }
       
       // Snapshot of the currently chosen shipping address (JSONB)
       const shippingAddress = address && address.fullName ? {
