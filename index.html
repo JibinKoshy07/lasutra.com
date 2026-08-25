@@ -305,16 +305,67 @@
       transition: all 0.3s;
     }
 
-    .filter-chip.sub-chip {
+    .chip-dropdown {
+      position: relative;
+    }
+
+    .chip-caret {
+      display: inline-block;
+      margin-left: 5px;
+      font-size: 0.72em;
+      transition: transform 0.25s;
+    }
+
+    .chip-dropdown.open .chip-caret {
+      transform: rotate(180deg);
+    }
+
+    .chip-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 180px;
+      background: #ffffff;
+      border: 1px solid #eee7e1;
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(29, 29, 35, 0.14);
+      padding: 6px;
+      z-index: 60;
+    }
+
+    .chip-dropdown.open .chip-menu {
+      display: block;
+    }
+
+    .chip-menu-item {
+      display: block;
+      width: 100%;
+      padding: 9px 14px;
+      border: none;
+      background: none;
+      border-radius: 8px;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: #1d1d23;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .chip-menu-item:hover {
       background: #faf6f3;
-      border-style: dashed;
-      font-size: 13px;
-      padding: 6px 16px;
+    }
+
+    .chip-menu-item.active {
+      color: #e94560;
+      font-weight: 600;
     }
 
     .filter-chip:hover {
       border-color: #e94560;
-      color: #fff;
+      color: #e94560;
     }
 
     .filter-chip.active {
@@ -1404,7 +1455,11 @@
         products = await productsRes.json();
         const categories = categoriesRes.ok ? await categoriesRes.json() : [];
 
-        renderCategoryFilters(categories.filter(c => c.product_count > 0));
+        // keep categories that have products — a parent's own count may be 0 while its
+        // subcategories hold the products, so judge parents by total_product_count
+        const visible = categories.filter(c =>
+          (c.parent_id ? c.product_count : c.total_product_count) > 0);
+        renderCategoryFilters(visible);
       } catch (err) {
         console.warn('Could not load products from API, using fallback data:', err);
         products = fallbackProducts;
@@ -1415,35 +1470,57 @@
 
     function renderCategoryFilters(categories) {
       const container = document.getElementById('categoryFilters');
-
-      // split flat list into parents + children (one level of subcategories)
       storeCategories = categories;
       const parents = categories.filter(c => !c.parent_id);
       const childrenOf = (id) => categories.filter(c => String(c.parent_id) === String(id));
+      const isActive = (c) => String(c.id) === String(activeCategory);
 
-      const chips = [{ id: 'all', name: 'All' }];
-      parents.forEach(p => {
-        chips.push(p);
-        // expose sub-chips while this parent (or one of its subs) is active
-        const activeSub = childrenOf(p.id).some(s => String(s.id) === String(activeCategory));
-        if (String(p.id) === String(activeCategory) || activeSub) {
-          childrenOf(p.id).forEach(sub => chips.push(sub));
+      let html = `<button class="filter-chip ${activeCategory === 'all' ? 'active' : ''}" data-category="all">All</button>`;
+
+      html += parents.map(p => {
+        const subs = childrenOf(p.id);
+        const pActive = isActive(p) || subs.some(isActive);
+        if (subs.length === 0) {
+          return `<button class="filter-chip ${pActive ? 'active' : ''}" data-category="${p.id}">${p.name}</button>`;
         }
+        return `
+          <div class="chip-dropdown">
+            <button class="filter-chip chip-toggle ${pActive ? 'active' : ''}">${p.name} <span class="chip-caret">▾</span></button>
+            <div class="chip-menu">
+              <button class="chip-menu-item ${isActive(p) ? 'active' : ''}" data-category="${p.id}">All ${p.name}</button>
+              ${subs.map(s => `<button class="chip-menu-item ${isActive(s) ? 'active' : ''}" data-category="${s.id}">${s.name}</button>`).join('')}
+            </div>
+          </div>`;
+      }).join('');
+
+      container.innerHTML = html;
+
+      // parents with subs toggle a dropdown; "All {parent}" inside performs the actual filter
+      container.querySelectorAll('.chip-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dd = btn.closest('.chip-dropdown');
+          const wasOpen = dd.classList.contains('open');
+          container.querySelectorAll('.chip-dropdown.open').forEach(d => d.classList.remove('open'));
+          if (!wasOpen) dd.classList.add('open');
+        });
       });
 
-      container.innerHTML = chips.map(c => `
-        <button class="filter-chip ${c.parent_id ? 'sub-chip' : ''} ${String(c.id) === String(activeCategory) ? 'active' : ''}"
-                data-category="${c.id}">${c.parent_id ? '› ' + c.name : c.name}</button>
-      `).join('');
-
-      container.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          activeCategory = chip.dataset.category;
-          renderCategoryFilters(categories);
+      container.querySelectorAll('[data-category]').forEach(el => {
+        el.addEventListener('click', () => {
+          activeCategory = el.dataset.category;
+          renderCategoryFilters(storeCategories);
           renderProducts();
         });
       });
     }
+
+    // close open category dropdowns on any outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.chip-dropdown')) {
+        document.querySelectorAll('.chip-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
 
     // Cart State (persisted so the checkout page can pick it up)
     let cart = JSON.parse(localStorage.getItem('lasutra_cart') || '[]');
