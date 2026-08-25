@@ -118,11 +118,14 @@
     .cart-btn svg {
       width: 28px;
       height: 28px;
-      fill: var(--text-primary);
-      transition: transform 0.3s ease;
+      fill: none;
+      stroke: var(--text-primary);
+      stroke-width: 1.8;
+      transition: stroke 0.3s ease, transform 0.3s ease;
     }
 
     .cart-btn:hover svg {
+      stroke: var(--accent);
       transform: scale(1.1);
     }
 
