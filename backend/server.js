@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { pool, initDatabase } = require('./db');
 const { sendOrderConfirmation, sendAdminNotification, sendStatusUpdateEmail } = require('./emailService');
 
@@ -32,6 +35,28 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded product images
+const uploadsDir = path.join(__dirname, 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+app.use('/uploads', express.static(uploadsDir));
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadsDir,
+    filename: (req, file, cb) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      cb(null, `${Date.now()}-${safe}`);
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!/^image\/(jpeg|png|gif|webp|svg\+xml|avif)$/.test(file.mimetype)) {
+      return cb(new Error('Only image files are allowed'));
+    }
+    cb(null, true);
+  }
+});
 
 // Initialize database on startup
 initDatabase();
@@ -518,6 +543,9 @@ app.post('/api/admin/products', async (req, res) => {
     );
     res.status(201).json({ message: 'Product created', product: result.rows[0] });
   } catch (err) {
+    if (err.code === '23503') {
+      return res.status(400).json({ error: 'Invalid category' });
+    }
     console.error('Create product error:', err);
     res.status(500).json({ error: 'Server error' });
   }
@@ -546,6 +574,9 @@ app.put('/api/admin/products/:id', async (req, res) => {
     }
     res.json({ message: 'Product updated', product: result.rows[0] });
   } catch (err) {
+    if (err.code === '23503') {
+      return res.status(400).json({ error: 'Invalid category' });
+    }
     console.error('Update product error:', err);
     res.status(500).json({ error: 'Server error' });
   }
@@ -604,6 +635,20 @@ app.delete('/api/admin/categories/:id', async (req, res) => {
     console.error('Delete category error:', err);
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+// Admin: upload a product image, returns its public URL
+app.post('/api/admin/upload', (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+    const url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.status(201).json({ message: 'Image uploaded', imageUrl: url });
+  });
 });
 
 // Start server
